@@ -15,18 +15,19 @@ model Role {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  full_name     String?
-  email         String    @unique
-  password      String
-  phone         String?
-  date_of_birth DateTime?
-  isActive      Boolean   @default(true)
-  gender        String?
-  role_id       String
-  role          Role      @relation(fields: [role_id], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  fullName  String?
+  email     String   @unique
+  password  String
+  phone     String?  @unique
+  avatar    String?
+  address   String?
+  isActive  Boolean  @default(true)
+  gender    String?
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   manager              Manager?
   stylist              Stylist?
@@ -42,10 +43,10 @@ model Salon {
   id        String   @id @default(uuid())
   name      String
   address   String
+  avatar    String?
   phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   managers Manager[]
   stylists Stylist[]
   bookings Booking[]
@@ -67,8 +68,8 @@ model Stylist {
   id          String   @id @default(uuid())
   userId      String   @unique
   salonId     String
-  rating      Float
-  ratingCount Int
+  rating      Float    @default(0)
+  ratingCount Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -85,9 +86,9 @@ model Stylist {
 model Customer {
   id             String   @id @default(uuid())
   userId         String   @unique
-  totalCompleted Int
-  totalCancelled Int
-  totalSpending  Int
+  totalCompleted Int      @default(0)
+  totalCancelled Int      @default(0)
+  totalSpending  Int      @default(0)
   memberTierId   String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
