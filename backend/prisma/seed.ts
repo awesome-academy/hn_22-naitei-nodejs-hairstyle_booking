@@ -11,8 +11,6 @@ async function main() {
       create: { name: roleName },
     });
   }
-
-  console.log("✅ Seeded roles successfully");
 }
 
 main()

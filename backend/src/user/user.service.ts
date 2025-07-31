@@ -76,6 +76,10 @@ export class UserService {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
+    }
+
     const passwordValid = await bcrypt.compare(password, user.password);
     if (!passwordValid) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
