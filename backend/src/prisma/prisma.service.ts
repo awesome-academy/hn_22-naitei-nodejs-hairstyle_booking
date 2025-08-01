@@ -13,10 +13,4 @@ export class PrismaService
   async onModuleDestroy() {
     await this.$disconnect();
   }
-
-  // Optional: clean up DB for testing
-  async cleanDatabase() {
-    // await this.user.deleteMany();
-    // await this.booking.deleteMany();
-  }
 }
