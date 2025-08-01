@@ -1,0 +1,317 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+}
+
+model Role {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  users       User[]
+}
+
+model User {
+  id            String    @id @default(uuid())
+  full_name     String?
+  email         String    @unique
+  password      String
+  phone         String?
+  date_of_birth DateTime?
+  isActive      Boolean   @default(true)
+  gender        String?
+  role_id       String
+  role          Role      @relation(fields: [role_id], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  manager              Manager?
+  stylist              Stylist?
+  customer             Customer?
+  notifications        Notification[]
+  otps                 Otp[]
+  messages             Message[]      @relation("MessageSender")
+  conversationsAsUser1 Conversation[] @relation("ConversationUser1")
+  conversationsAsUser2 Conversation[] @relation("ConversationUser2")
+}
+
+model Salon {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  managers Manager[]
+  stylists Stylist[]
+  bookings Booking[]
+  stats    SalonStats[]
+}
+
+model Manager {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  salonId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id])
+  salon Salon @relation(fields: [salonId], references: [id])
+}
+
+model Stylist {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  salonId     String
+  rating      Float
+  ratingCount Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User           @relation(fields: [userId], references: [id])
+  salon     Salon          @relation(fields: [salonId], references: [id])
+  schedules WorkSchedule[]
+  dayOffs   DayOff[]
+  bookings  Booking[]
+  reviews   Review[]
+
+  favoritedBy StylistFavorite[]
+}
+
+model Customer {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  totalCompleted Int
+  totalCancelled Int
+  totalSpending  Int
+  memberTierId   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User              @relation(fields: [userId], references: [id])
+  memberTier     MemberTier?       @relation(fields: [memberTierId], references: [id])
+  bookings       Booking[]
+  bookingHistory BookingComplete[]
+  reviews        Review[]
+  favorites      StylistFavorite[]
+}
+
+model MemberTier {
+  id              String     @id @default(uuid())
+  name            String
+  minSpending     Int
+  discountPercent Int
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  customers       Customer[]
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Int
+  duration    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookingServices BookingService[]
+}
+
+model Booking {
+  id         String         @id @default(uuid())
+  customerId String
+  stylistId  String
+  salonId    String
+  totalPrice Int
+  status     BookingStatus  @default(PENDING)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  customer      Customer          @relation(fields: [customerId], references: [id])
+  stylist       Stylist           @relation(fields: [stylistId], references: [id])
+  salon         Salon             @relation(fields: [salonId], references: [id])
+  services      BookingService[]
+  timeslots     BookingTimeslot[]
+  review        Review?
+  bookingRecord BookingComplete?
+}
+
+
+model BookingService {
+  id        String   @id @default(uuid())
+  bookingId String
+  serviceId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+}
+
+model BookingTimeslot {
+  id         String   @id @default(uuid())
+  bookingId  String
+  timeSlotId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  booking  Booking  @relation(fields: [bookingId], references: [id])
+  timeSlot TimeSlot @relation(fields: [timeSlotId], references: [id])
+}
+
+model WorkSchedule {
+  id               String   @id @default(uuid())
+  stylistId        String
+  workingDate      DateTime
+  morningStartTime DateTime
+  morningEndTime   DateTime
+  afternoonStart   DateTime
+  afternoonEnd     DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  stylist   Stylist    @relation(fields: [stylistId], references: [id])
+  timeSlots TimeSlot[]
+}
+
+model TimeSlot {
+  id         String   @id @default(uuid())
+  scheduleId String
+  startTime  DateTime
+  endTime    DateTime
+  isBooked   Boolean
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  schedule         WorkSchedule      @relation(fields: [scheduleId], references: [id])
+  bookingTimeslots BookingTimeslot[]
+}
+
+model DayOff {
+  id        String   @id @default(uuid())
+  stylistId String
+  date      DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stylist Stylist @relation(fields: [stylistId], references: [id])
+}
+
+model BookingComplete {
+  id          String   @id @default(uuid())
+  customerId  String
+  bookingId   String   @unique
+  totalAmount Int
+  createdAt   DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  booking  Booking  @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  bookingId  String   @unique
+  customerId String
+  stylistId  String
+  rating     Int
+  content    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  booking  Booking  @relation(fields: [bookingId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  stylist  Stylist  @relation(fields: [stylistId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model StylistFavorite {
+  id         String   @id @default(uuid())
+  customerId String
+  stylistId  String
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  stylist  Stylist  @relation(fields: [stylistId], references: [id])
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  type      String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Conversation {
+  id            String    @id @default(uuid())
+  user1Id       String
+  user2Id       String
+  lastMessage   String?
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user1 User @relation("ConversationUser1", fields: [user1Id], references: [id])
+  user2 User @relation("ConversationUser2", fields: [user2Id], references: [id])
+
+  messages Message[]
+
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  messageType    String   @default("text")
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  sender       User         @relation("MessageSender", fields: [senderId], references: [id])
+}
+
+model SalonStats {
+  id                String   @id @default(uuid())
+  salonId           String
+  date              DateTime
+  totalBookings     Int
+  completedBookings Int
+  cancelledBookings Int
+  totalRevenue      Int
+  newCustomers      Int
+  stylistCount      Int
+  averageRating     Float
+  reviewCount       Int
+  favoriteCount     Int
+  createdAt         DateTime @default(now())
+
+  salon Salon @relation(fields: [salonId], references: [id])
+}
