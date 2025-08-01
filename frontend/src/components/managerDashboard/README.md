@@ -1,0 +1,1 @@
+This is the manager dashboard component.
