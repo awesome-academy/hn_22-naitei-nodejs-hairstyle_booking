@@ -1,11 +1,11 @@
 import React from 'react'
-import NavBar from '../components/NavBar'
-import Header from '../components/Header'
-import AboutUs from '../components/AboutUs'
-import Services from '../components/Services'
-import StylistList from '../components/StylistList'
-import BookingIntro from '../components/BookingIntro'
-import Footer from '../components/Footer'
+import NavBar from '../components/home/Navbar'
+import Header from '../components/home/Header'
+import AboutUs from '../components/home/AboutUs'
+import Services from '../components/home/Services'
+import StylistList from '../components/home/StylistList'
+import BookingIntro from '../components/home/BookingIntro'
+import Footer from '../components/home/Footer'
 
 const Home = () => {
   return (
