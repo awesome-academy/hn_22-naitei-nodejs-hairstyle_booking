@@ -8,9 +8,10 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
   VerifyOtpDto,
+  VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
 
-@Controller("api/auth")
+@Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -41,9 +42,8 @@ export class AuthController {
   @Post("verify-reset-otp")
   async verifyResetOtp(
     @Body() dto: VerifyOtpDto,
-  ): Promise<{ message: string }> {
-    await this.authService.verifyResetOtp(dto);
-    return { message: "OTP is valid" };
+  ): Promise<VerifyOtpResponseDto> {
+    return this.authService.verifyResetOtp(dto);
   }
 
   @Public()
@@ -51,7 +51,6 @@ export class AuthController {
   async resetPassword(
     @Body() dto: ResetPasswordDto,
   ): Promise<{ message: string }> {
-    await this.authService.resetPassword(dto);
-    return { message: "Password has been reset successfully" };
+    return this.authService.resetPasswordWithToken(dto);
   }
 }

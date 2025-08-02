@@ -6,6 +6,12 @@ export class ForgotPasswordDto {
   email: string;
 }
 
+export class VerifyOtpResponseDto {
+  message: string;
+  resetToken: string;
+  expiresAt: Date;
+}
+
 export class VerifyOtpDto {
   @IsEmail()
   @IsNotEmpty()
@@ -23,7 +29,7 @@ export class ResetPasswordDto {
 
   @IsString()
   @IsNotEmpty()
-  otp: string;
+  resetToken: string;
 
   @IsString()
   @IsNotEmpty()

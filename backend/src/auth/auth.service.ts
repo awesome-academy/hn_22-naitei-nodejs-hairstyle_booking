@@ -11,6 +11,7 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
   VerifyOtpDto,
+  VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { OtpType } from "src/otp/enums/otp-type.enum";
@@ -64,17 +65,7 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (!user) {
-      throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
-    }
-
-    if (!user.isActive) {
-      throw new BadRequestException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
-    }
+    const user = await this.getActiveUserByEmail(dto.email);
 
     const otpCode = await this.otpService.createOtp(
       user.id,
@@ -84,32 +75,30 @@ export class AuthService {
     await this.emailService.sendPasswordResetOtp(dto.email, otpCode);
   }
 
-  async verifyResetOtp(dto: VerifyOtpDto): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+  async verifyResetOtp(dto: VerifyOtpDto): Promise<VerifyOtpResponseDto> {
+    const user = await this.getActiveUserByEmail(dto.email);
 
-    if (!user) {
-      throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
-    }
+    const { resetToken, expiresAt } =
+      await this.otpService.verifyOtpAndCreateResetToken(
+        user.id,
+        dto.otp,
+        OtpType.RESET_PASSWORD,
+      );
 
-    await this.otpService.checkOtpValid(
-      user.id,
-      dto.otp,
-      OtpType.RESET_PASSWORD,
-    );
+    return {
+      message: "OTP verified successfully",
+      resetToken,
+      expiresAt,
+    };
   }
 
-  async resetPassword(dto: ResetPasswordDto): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+  async resetPasswordWithToken(
+    dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.getActiveUserByEmail(dto.email);
 
-    if (!user) {
-      throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
-    }
-
-    await this.otpService.verifyOtp(user.id, dto.otp, OtpType.RESET_PASSWORD);
+    // Verify reset token instead of OTP
+    await this.otpService.verifyResetToken(user.id, dto.resetToken);
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
@@ -117,5 +106,21 @@ export class AuthService {
       where: { id: user.id },
       data: { password: hashedPassword },
     });
+
+    return { message: "Password has been reset successfully" };
+  }
+
+  private async getActiveUserByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
+    }
+
+    if (!user.isActive) {
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
+    }
+
+    return user;
   }
 }
