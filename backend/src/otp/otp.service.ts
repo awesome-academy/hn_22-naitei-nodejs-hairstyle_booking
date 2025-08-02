@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { OtpType } from "./enums/otp-type.enum";
-
+import { ERROR_MESSAGES } from "../common/constants/error.constants";
 @Injectable()
 export class OtpService {
   constructor(private readonly prisma: PrismaService) {}
@@ -34,6 +34,26 @@ export class OtpService {
     return code;
   }
 
+  async checkOtpValid(userId: string, code: string, type: OtpType): Promise<boolean> {
+    const otp = await this.prisma.otp.findFirst({
+      where: {
+        userId,
+        code,
+        type,
+        isUsed: false,
+        expiresAt: {
+          gte: new Date(),
+        },
+      },
+    });
+
+    if (!otp) {
+      throw new BadRequestException(ERROR_MESSAGES.OTP.INVALID_OR_EXPIRED);
+    }
+
+    return true;
+  }
+
   async verifyOtp(userId: string, code: string, type: OtpType): Promise<boolean> {
     const otp = await this.prisma.otp.findFirst({
       where: {
@@ -48,7 +68,7 @@ export class OtpService {
     });
 
     if (!otp) {
-      throw new BadRequestException("OTP không hợp lệ hoặc đã hết hạn");
+      throw new BadRequestException(ERROR_MESSAGES.OTP.INVALID_OR_EXPIRED);
     }
 
     await this.prisma.otp.update({

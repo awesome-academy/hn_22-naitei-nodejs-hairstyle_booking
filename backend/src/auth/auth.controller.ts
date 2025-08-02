@@ -4,8 +4,9 @@ import { RegisterDto } from "./dtos/register.dto";
 import { Public } from "../common/decorators/public.decorator";
 import { AuthCustomerResponseDto } from "../user/dtos/customer/auth-customer.dto";
 import { LoginDto } from "./dtos/login.dto";
+import { ForgotPasswordDto, ResetPasswordDto, VerifyOtpDto } from "src/auth/dtos/forgot-password.dto";
 
-@Controller("auth")
+@Controller("api/auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -21,5 +22,26 @@ export class AuthController {
   @Post("login")
   async loginCustomer(@Body() dto: LoginDto): Promise<AuthCustomerResponseDto> {
     return this.authService.loginCustomer(dto);
+  }
+
+  @Public()
+  @Post("forgot-password")
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
+    await this.authService.forgotPassword(dto);
+    return { message: "OTP code has been sent to your email" };
+  }
+
+  @Public()
+  @Post("verify-reset-otp")
+  async verifyResetOtp(@Body() dto: VerifyOtpDto): Promise<{ message: string }> {
+    await this.authService.verifyResetOtp(dto);
+    return { message: "OTP is valid" };
+  }
+
+  @Public()
+  @Post("reset-password")
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
+    await this.authService.resetPassword(dto);
+    return { message: "Password has been reset successfully" };
   }
 }
