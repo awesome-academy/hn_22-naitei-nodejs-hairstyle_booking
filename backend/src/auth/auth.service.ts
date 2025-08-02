@@ -7,7 +7,11 @@ import { LoginDto } from "./dtos/login.dto";
 import { buildCustomerLoginResponse } from "../user/utils/response-builder";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
-import { ForgotPasswordDto, ResetPasswordDto, VerifyOtpDto } from "src/auth/dtos/forgot-password.dto";
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  VerifyOtpDto,
+} from "src/auth/dtos/forgot-password.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { OtpType } from "src/otp/enums/otp-type.enum";
 import { ERROR_MESSAGES } from "src/common/constants/error.constants";
@@ -72,8 +76,11 @@ export class AuthService {
       throw new BadRequestException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
 
-    const otpCode = await this.otpService.createOtp(user.id, OtpType.RESET_PASSWORD);
-    
+    const otpCode = await this.otpService.createOtp(
+      user.id,
+      OtpType.RESET_PASSWORD,
+    );
+
     await this.emailService.sendPasswordResetOtp(dto.email, otpCode);
   }
 
@@ -85,8 +92,12 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
-    
-    await this.otpService.checkOtpValid(user.id, dto.otp, OtpType.RESET_PASSWORD);
+
+    await this.otpService.checkOtpValid(
+      user.id,
+      dto.otp,
+      OtpType.RESET_PASSWORD,
+    );
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<void> {
@@ -97,11 +108,11 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
-    
+
     await this.otpService.verifyOtp(user.id, dto.otp, OtpType.RESET_PASSWORD);
-    
+
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
-    
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: { password: hashedPassword },

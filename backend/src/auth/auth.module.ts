@@ -17,7 +17,14 @@ import { EmailService } from "../email/email.service";
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
     }),
   ],
-  providers: [AuthService, UserService, PrismaService, CustomerService, OtpService, EmailService],
+  providers: [
+    AuthService,
+    UserService,
+    PrismaService,
+    CustomerService,
+    OtpService,
+    EmailService,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })

@@ -20,7 +20,7 @@ export class OtpService {
     });
 
     const code = this.generateOtpCode();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); 
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     await this.prisma.otp.create({
       data: {
@@ -34,7 +34,11 @@ export class OtpService {
     return code;
   }
 
-  async checkOtpValid(userId: string, code: string, type: OtpType): Promise<boolean> {
+  async checkOtpValid(
+    userId: string,
+    code: string,
+    type: OtpType,
+  ): Promise<boolean> {
     const otp = await this.prisma.otp.findFirst({
       where: {
         userId,
@@ -54,7 +58,11 @@ export class OtpService {
     return true;
   }
 
-  async verifyOtp(userId: string, code: string, type: OtpType): Promise<boolean> {
+  async verifyOtp(
+    userId: string,
+    code: string,
+    type: OtpType,
+  ): Promise<boolean> {
     const otp = await this.prisma.otp.findFirst({
       where: {
         userId,

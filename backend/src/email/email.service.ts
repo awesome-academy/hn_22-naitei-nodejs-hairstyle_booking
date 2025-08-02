@@ -1,11 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import * as nodemailer from "nodemailer";
-import { transporter } from './email.config';
-import { generateOtpHtml } from 'src/otp/otp-template'
+import { transporter } from "./email.config";
+import { generateOtpHtml } from "src/otp/otp-template";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
 @Injectable()
 export class EmailService {
-  async sendOtpEmail(email: string, otpCode: string, purpose: string): Promise<void> {
+  async sendOtpEmail(
+    email: string,
+    otpCode: string,
+    purpose: string,
+  ): Promise<void> {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
