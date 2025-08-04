@@ -15,7 +15,6 @@ export class StylistService {
     const { search, salonId, minRating, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
 
-    // Tạo where conditions
     const conditions: Prisma.StylistWhereInput[] = [];
 
     if (search) {
