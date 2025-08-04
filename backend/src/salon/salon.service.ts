@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { GetSalonsQueryDto } from "./dto/get-salons-query.dto";
-import { SalonListResponseDto } from "./types/salon-response.types";
+import { SalonListResponseDto } from "./dto/salon-response.dto";
 import { buildSalonListResponse } from "./utils/salon-response-builder";
 
 @Injectable()

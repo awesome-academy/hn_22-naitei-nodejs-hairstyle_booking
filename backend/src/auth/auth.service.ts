@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { RegisterDto } from "./dtos/register.dto";
 import { LoginDto } from "./dtos/login.dto";
@@ -22,7 +22,6 @@ enum RoleName {
   MANAGER = "MANAGER",
 }
 
-import { LoginDto } from "./dtos/login.dto";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
 import {
@@ -31,9 +30,7 @@ import {
   VerifyOtpDto,
   VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
-import { PrismaService } from "src/prisma/prisma.service";
 import { OtpType } from "src/otp/enums/otp-type.enum";
-import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 import * as bcrypt from "bcrypt";
 @Injectable()
 export class AuthService {
@@ -70,7 +67,6 @@ export class AuthService {
       | CustomerResponseLoginDto
       | StylistResponseLoginDto
       | null = null;
-    const userRoleName: RoleName = user.role.name as RoleName;
 
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -80,6 +76,8 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
+
+    const userRoleName: RoleName = user.role.name as RoleName;
 
     switch (userRoleName) {
       case RoleName.CUSTOMER:
