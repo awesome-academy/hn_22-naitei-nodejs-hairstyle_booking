@@ -8,4 +8,8 @@ export const ERROR_MESSAGES = {
     EMAIL_ALREADY_EXISTS: "Email already exists",
     PHONE_ALREADY_EXISTS: "Phone number already exists",
   },
+  OTP: {
+    INVALID_OR_EXPIRED: "OTP is invalid or expired",
+    EMAIL_SEND_FAILED: "Unable to send OTP email",
+  },
 };

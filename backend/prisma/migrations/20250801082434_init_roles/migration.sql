@@ -115,7 +115,7 @@ CREATE TABLE `Booking` (
     `stylistId` VARCHAR(191) NOT NULL,
     `salonId` VARCHAR(191) NOT NULL,
     `totalPrice` INTEGER NOT NULL,
-    `status` VARCHAR(191) NOT NULL,
+    `status` ENUM('PENDING', 'COMPLETED', 'CANCELED') NOT NULL DEFAULT 'PENDING',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -256,6 +256,7 @@ CREATE TABLE `Conversation` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    UNIQUE INDEX `Conversation_user1Id_user2Id_key`(`user1Id`, `user2Id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

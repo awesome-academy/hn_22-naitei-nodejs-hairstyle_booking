@@ -6,6 +6,8 @@ import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { CustomerService } from "../user/customer.service";
 import { jwtConstants } from "../common/constants/jwt.constants";
+import { OtpService } from "../otp/otp.service";
+import { EmailService } from "../email/email.service";
 
 @Module({
   imports: [
@@ -15,7 +17,14 @@ import { jwtConstants } from "../common/constants/jwt.constants";
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
     }),
   ],
-  providers: [AuthService, UserService, PrismaService, CustomerService],
+  providers: [
+    AuthService,
+    UserService,
+    PrismaService,
+    CustomerService,
+    OtpService,
+    EmailService,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })
