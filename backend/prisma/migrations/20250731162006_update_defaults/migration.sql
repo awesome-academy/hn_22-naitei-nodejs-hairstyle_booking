@@ -1,8 +1,0 @@
--- AlterTable
-ALTER TABLE `customer` MODIFY `totalCompleted` INTEGER NOT NULL DEFAULT 0,
-    MODIFY `totalCancelled` INTEGER NOT NULL DEFAULT 0,
-    MODIFY `totalSpending` INTEGER NOT NULL DEFAULT 0;
-
--- AlterTable
-ALTER TABLE `stylist` MODIFY `rating` DOUBLE NOT NULL DEFAULT 0,
-    MODIFY `ratingCount` INTEGER NOT NULL DEFAULT 0;
