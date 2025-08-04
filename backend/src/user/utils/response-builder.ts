@@ -1,16 +1,15 @@
-// response-builder.ts
-
 import { CustomerResponseLoginDto } from "../dtos/customer/auth-customer.dto";
+import { StylistResponseLoginDto } from "../dtos/stylist/auth-stylist.dto";
 
 interface RoleData {
   id: string;
   name: string;
-  description?: string | null; // cho phép null hoặc undefined
+  description?: string | null;
 }
 
 interface UserData {
   id: string;
-  fullName: string | null; // cho phép null
+  fullName: string | null;
   email: string;
   phone: string | null;
   gender?: string | null;
@@ -67,5 +66,48 @@ export function buildCustomerLoginResponse(
           discountPercent: customer.memberTier.discountPercent,
         }
       : undefined,
+  };
+}
+
+interface SalonData {
+  id: string;
+  name: string;
+  address: string;
+}
+
+interface StylistData {
+  id: string;
+  userId: string;
+  salonId: string;
+  rating: number;
+  ratingCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  salon: SalonData;
+}
+
+export function buildStylistLoginResponse(
+  user: UserData,
+  stylist?: StylistData | null,
+): StylistResponseLoginDto {
+  return {
+    id: user.id,
+    fullName: user.fullName ?? "",
+    email: user.email,
+    phone: user.phone,
+    gender: user.gender ?? null,
+    avatar: user.avatar ?? null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    isActive: user.isActive,
+    role: {
+      name: user.role.name,
+      description: user.role.description ?? undefined,
+    },
+    rating: stylist?.rating ?? 0,
+    ratingCount: stylist?.ratingCount ?? 0,
+    salonId: stylist?.salonId ?? "",
+    salonName: stylist?.salon?.name ?? "",
+    salonAddress: stylist?.salon?.address ?? "",
   };
 }

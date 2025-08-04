@@ -7,6 +7,13 @@ export const ERROR_MESSAGES = {
   USER: {
     EMAIL_ALREADY_EXISTS: "Email already exists",
     PHONE_ALREADY_EXISTS: "Phone number already exists",
+    UN_AUTH: "Un",
+  },
+  SALON: {
+    NOT_FOUND: "Salon not found",
+  },
+  ROLE: {
+    NOT_FOUND: "ROLE NOT FOUND",
   },
   OTP: {
     INVALID_OR_EXPIRED: "OTP is invalid or expired",

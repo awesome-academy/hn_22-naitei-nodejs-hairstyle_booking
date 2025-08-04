@@ -1,10 +1,28 @@
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { RegisterDto } from "./dtos/register.dto";
-import { AuthCustomerResponseDto } from "../user/dtos/customer/auth-customer.dto";
-import { UserService } from "../user/user.service";
 import { LoginDto } from "./dtos/login.dto";
-import { buildCustomerLoginResponse } from "../user/utils/response-builder";
+
+import { AuthCustomerResponseDto } from "../user/dtos/customer/auth-customer.dto";
+import { CustomerResponseLoginDto } from "../user/dtos/customer/auth-customer.dto";
+
+import {
+  AuthStylistResponseDto,
+  StylistResponseLoginDto,
+} from "../user/dtos/stylist/auth-stylist.dto";
+
+import { UserService } from "../user/user.service";
+import { ERROR_MESSAGES } from "src/common/constants/error.constants";
+import { PrismaService } from "src/prisma/prisma.service";
+
+enum RoleName {
+  CUSTOMER = "CUSTOMER",
+  STYLIST = "STYLIST",
+  MANAGER = "MANAGER",
+}
+
+import { LoginDto } from "./dtos/login.dto";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
 import {
@@ -44,24 +62,53 @@ export class AuthService {
     };
   }
 
-  async loginCustomer(dto: LoginDto): Promise<AuthCustomerResponseDto> {
-    const customer = await this.userService.validateCustomer(
-      dto.email,
-      dto.password,
-    );
+  async login(
+    dto: LoginDto,
+  ): Promise<AuthCustomerResponseDto | AuthStylistResponseDto> {
+    const { email, password } = dto;
+    let userResponse:
+      | CustomerResponseLoginDto
+      | StylistResponseLoginDto
+      | null = null;
+    const userRoleName: RoleName = user.role.name as RoleName;
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { role: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
+    }
+
+    switch (userRoleName) {
+      case RoleName.CUSTOMER:
+        userResponse = await this.userService.validateCustomer(email, password);
+        break;
+      case RoleName.STYLIST:
+        userResponse = await this.userService.validateStylist(email, password);
+        break;
+      default:
+        throw new UnauthorizedException(ERROR_MESSAGES.ROLE.NOT_FOUND);
+    }
 
     const payload = {
-      sub: customer.id,
-      email: customer.email,
-      role: customer.role.name,
+      sub: userResponse.id,
+      email: userResponse.email,
+      role: userResponse.role.name,
     };
 
     const access_token = await this.jwtService.signAsync(payload);
 
-    return {
-      access_token,
-      customer,
-    };
+    if (userResponse.role.name === RoleName.CUSTOMER.toString()) {
+      return {
+        access_token,
+        customer: userResponse as CustomerResponseLoginDto,
+      };
+    } else if (userResponse.role.name === RoleName.STYLIST.toString()) {
+      return { access_token, stylist: userResponse as StylistResponseLoginDto };
+    }
+    throw new Error("Unexpected user type during login response creation.");
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
