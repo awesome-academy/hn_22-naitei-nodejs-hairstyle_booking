@@ -22,40 +22,25 @@ export class ServiceService {
     } = query;
     const skip = (page - 1) * limit;
 
-    const conditions: Prisma.ServiceWhereInput[] = [];
+    const where: Prisma.ServiceWhereInput = {};
 
     if (search) {
-      conditions.push({
-        OR: [
-          {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            } as Prisma.StringFilter,
-          },
-          {
-            description: {
-              contains: search,
-              mode: "insensitive",
-            } as Prisma.StringNullableFilter,
-          },
-        ],
-      });
+      const searchLower = search.toLowerCase();
+      where.OR = [
+        { name: { contains: searchLower } },
+        { description: { contains: searchLower } },
+      ];
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
-      const priceCondition: Prisma.IntFilter = {};
-      if (minPrice !== undefined) priceCondition.gte = minPrice;
-      if (maxPrice !== undefined) priceCondition.lte = maxPrice;
-      conditions.push({ price: priceCondition });
+      where.price = {};
+      if (minPrice !== undefined) where.price.gte = minPrice;
+      if (maxPrice !== undefined) where.price.lte = maxPrice;
     }
 
     if (maxDuration !== undefined) {
-      conditions.push({ duration: { lte: maxDuration } });
+      where.duration = { lte: maxDuration };
     }
-
-    const where: Prisma.ServiceWhereInput =
-      conditions.length > 0 ? { AND: conditions } : {};
 
     const [services, total] = await Promise.all([
       this.prisma.service.findMany({

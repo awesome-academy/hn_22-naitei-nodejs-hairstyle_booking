@@ -15,8 +15,8 @@ export class SalonService {
     const where = search
       ? {
           OR: [
-            { name: { contains: search, mode: "insensitive" as const } },
-            { address: { contains: search, mode: "insensitive" as const } },
+            { name: { contains: search.toLowerCase() } },
+            { address: { contains: search.toLowerCase() } },
           ],
         }
       : {};
