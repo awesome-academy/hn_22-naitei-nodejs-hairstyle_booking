@@ -8,6 +8,9 @@ import { CustomerService } from "../user/customer.service";
 import { jwtConstants } from "../common/constants/jwt.constants";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
+import { ConfigModule } from "@nestjs/config";
+import { PassportModule } from "@nestjs/passport";
+import { JwtStrategy } from "./jwt.strategy";
 
 @Module({
   imports: [
@@ -16,6 +19,8 @@ import { EmailService } from "../email/email.service";
       secret: jwtConstants.secret,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
     }),
+    PassportModule,
+    ConfigModule,
   ],
   providers: [
     AuthService,
@@ -24,6 +29,7 @@ import { EmailService } from "../email/email.service";
     CustomerService,
     OtpService,
     EmailService,
+    JwtStrategy,
   ],
   controllers: [AuthController],
   exports: [AuthService],
