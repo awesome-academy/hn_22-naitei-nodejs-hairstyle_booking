@@ -6,12 +6,19 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { RegisterDto } from "./dtos/register.dto";
 import { LoginDto } from "./dtos/login.dto";
-import { AuthCustomerResponseDto } from "../user/dtos/customer/customer-response.dto";
-import { CustomerResponseDto } from "../user/dtos/customer/customer-response.dto";
+import {
+  ManagerResponseDto,
+  AuthManagerResponseDto,
+} from "../user/dtos/manager/manager-response.dto";
+import {
+  CustomerResponseDto,
+  AuthCustomerResponseDto,
+} from "../user/dtos/customer/customer-response.dto";
 import {
   AuthStylistResponseDto,
   StylistResponseDto,
 } from "../user/dtos/stylist/stylist-response.dto";
+import { UserResponseDto } from "../user/dtos/user/user-response.dto";
 import { UserService } from "../user/user.service";
 import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -26,12 +33,7 @@ import {
 } from "src/auth/dtos/forgot-password.dto";
 import { OtpType } from "src/otp/enums/otp-type.enum";
 import * as bcrypt from "bcrypt";
-
-enum RoleName {
-  CUSTOMER = "CUSTOMER",
-  STYLIST = "STYLIST",
-  MANAGER = "MANAGER",
-}
+import { RoleName } from "src/common/enums/role-name.enum";
 
 @Injectable()
 export class AuthService {
@@ -62,9 +64,15 @@ export class AuthService {
 
   async login(
     dto: LoginDto,
-  ): Promise<AuthCustomerResponseDto | AuthStylistResponseDto> {
+  ): Promise<
+    AuthCustomerResponseDto | AuthStylistResponseDto | AuthManagerResponseDto
+  > {
     const { email, password } = dto;
-    let userResponse: CustomerResponseDto | StylistResponseDto | null = null;
+    let userResponse:
+      | CustomerResponseDto
+      | StylistResponseDto
+      | ManagerResponseDto
+      | null = null;
     let userRoleName: RoleName;
 
     const user = await this.prisma.user.findUnique({
@@ -85,8 +93,11 @@ export class AuthService {
       case RoleName.STYLIST:
         userResponse = await this.userService.validateStylist(email, password);
         break;
+      case RoleName.MANAGER:
+        userResponse = await this.userService.validateManager(email, password);
+        break;
       default:
-        throw new UnauthorizedException(ERROR_MESSAGES.ROLE.NOT_FOUND);
+        throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
     }
 
     const payload = {
@@ -106,6 +117,23 @@ export class AuthService {
       return { access_token, stylist: userResponse as StylistResponseDto };
     }
     throw new Error("Unexpected user type during login response creation.");
+  }
+
+  async loginAdmin(
+    dto: LoginDto,
+  ): Promise<{ access_token: string; admin: UserResponseDto }> {
+    const { email, password } = dto;
+
+    const adminUser = await this.userService.validateAdmin(email, password);
+
+    const payload = {
+      sub: adminUser.id,
+      email: adminUser.email,
+      role: adminUser.role.name,
+    };
+    const access_token = await this.jwtService.signAsync(payload);
+
+    return { access_token, admin: adminUser };
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {

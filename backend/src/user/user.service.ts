@@ -2,21 +2,32 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CustomerService } from "./customer.service";
 import { CreateCustomerDto } from "./dtos/customer/create-customer.dto";
-import { CustomerResponseDto } from "./dtos/customer/customer-response.dto";
+import { CreateManagerDto } from "./dtos/manager/create-manager.dto";
+import { CreateStylistDto } from "./dtos/stylist/create-stylist.dto";
+import { ManagerResponseDto } from "./dtos/manager/manager-response.dto";
 import * as bcrypt from "bcrypt";
 import {
   buildCustomerResponse,
   buildStylistResponse,
+  buildManagerResponse,
+  buildUserResponse,
 } from "./utils/response-builder";
 import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
-import { CreateStylistDto } from "./dtos/stylist/create-stylist.dto";
-import { StylistResponseDto } from "./dtos/stylist/stylist-response.dto";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
-import { ListCustomerResponseDto } from "./dtos/customer/customer-response.dto";
-import { ListStylistResponseDto } from "./dtos/stylist/stylist-response.dto";
-import { ListUserResponseDto } from "./dtos/user/user-response.dto";
+import {
+  ListCustomerResponseDto,
+  CustomerResponseDto,
+} from "./dtos/customer/customer-response.dto";
+import {
+  ListStylistResponseDto,
+  StylistResponseDto,
+} from "./dtos/stylist/stylist-response.dto";
+import {
+  ListUserResponseDto,
+  UserResponseDto,
+} from "./dtos/user/user-response.dto";
 import { ListManagerResponseDto } from "./dtos/manager/manager-response.dto";
 import {
   getAllUsers,
@@ -24,6 +35,7 @@ import {
   getStylists,
   getManagers,
 } from "./utils/list-users.helper";
+import { RoleName } from "../common/enums/role-name.enum";
 
 @Injectable()
 export class UserService {
@@ -187,6 +199,87 @@ export class UserService {
     }
 
     return buildStylistResponse(user, user.stylist);
+  }
+
+  public async createUserManager(
+    dto: CreateManagerDto,
+  ): Promise<ManagerResponseDto> {
+    const { email, phone, password, salonId, ...rest } = dto;
+    if (await this.prisma.user.findUnique({ where: { email } })) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
+    }
+    if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
+    }
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+    });
+    if (!salon) {
+      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
+    }
+    const hashedPassword = await this.hashPassword(password);
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        phone: phone ?? null,
+        password: hashedPassword,
+        fullName: rest.fullName ?? "",
+        gender: rest.gender ?? null,
+        avatar: rest.avatar ?? null,
+        role: { connect: { name: RoleName.MANAGER } },
+        manager: { create: { salon: { connect: { id: salonId } } } },
+      },
+      include: { role: true, manager: { include: { salon: true } } },
+    });
+    return buildManagerResponse(user, user.manager);
+  }
+
+  public async validateManager(
+    email: string,
+    password: string,
+  ): Promise<ManagerResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { role: true, manager: { include: { salon: true } } },
+    });
+    if (!user) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
+    }
+    if (user.role.name !== RoleName.MANAGER) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_MANAGER_ROLE);
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
+    }
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
+    }
+    return buildManagerResponse(user, user.manager);
+  }
+
+  public async validateAdmin(
+    email: string,
+    password: string,
+  ): Promise<UserResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { role: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
+    }
+    if (user.role.name !== RoleName.ADMIN) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_ADMIN_ROLE);
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
+    }
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
+    }
+    return buildUserResponse(user);
   }
 
   async findUsersByViewer(
