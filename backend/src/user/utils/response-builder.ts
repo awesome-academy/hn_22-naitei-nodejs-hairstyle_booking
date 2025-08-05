@@ -1,5 +1,7 @@
 import { CustomerResponseLoginDto } from "../dtos/customer/auth-customer.dto";
+import { ManagerResponseLoginDto } from "../dtos/manager/auth-manager.dto";
 import { StylistResponseLoginDto } from "../dtos/stylist/auth-stylist.dto";
+import { UserResponseLoginDto } from "../dtos/user/user-response-login.dto";
 
 interface RoleData {
   id: string;
@@ -109,5 +111,37 @@ export function buildStylistLoginResponse(
     salonId: stylist?.salonId ?? '', 
     salonName: stylist?.salon?.name ?? '', 
     salonAddress: stylist?.salon?.address ?? '',
+  };
+}
+
+interface ManagerData {
+  id: string; userId: string; salonId: string; createdAt: Date; updatedAt: Date;
+  salon: { id: string; name: string; address: string; };
+}
+export function buildManagerLoginResponse(user: UserData, manager?: ManagerData | null,): ManagerResponseLoginDto {
+  return {
+    id: user.id, fullName: user.fullName ?? "", email: user.email, phone: user.phone,
+    gender: user.gender ?? null, avatar: user.avatar ?? null, createdAt: user.createdAt,
+    updatedAt: user.updatedAt, isActive: user.isActive,
+    role: { name: user.role.name, description: user.role.description ?? undefined, },
+    salonId: manager?.salonId ?? '', salonName: manager?.salon?.name ?? '', salonAddress: manager?.salon?.address ?? '',
+  };
+}
+
+export function buildUserResponseForAdmin(user: UserData): UserResponseLoginDto {
+  return {
+    id: user.id,
+    fullName: user.fullName ?? "",
+    email: user.email,
+    phone: user.phone,
+    gender: user.gender ?? null,
+    avatar: user.avatar ?? null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    isActive: user.isActive,
+    role: {
+      name: user.role.name,
+      description: user.role.description ?? undefined,
+    },
   };
 }

@@ -12,6 +12,8 @@ import {
   VerifyOtpDto,
   VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
+import { ManagerResponseLoginDto } from "src/user/dtos/manager/auth-manager.dto";
+import { UserResponseLoginDto } from "src/user/dtos/user/user-response-login.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -27,8 +29,16 @@ export class AuthController {
 
   @Public()
   @Post("login")
-  async login(@Body() dto: LoginDto): Promise<AuthCustomerResponseDto | AuthStylistResponseDto> {
+  async login(@Body() dto: LoginDto): Promise<AuthCustomerResponseDto | AuthStylistResponseDto | ManagerResponseLoginDto> {
     return this.authService.login(dto);
+  }
+
+  @Public()
+  @Post("login/admin") 
+  async loginAdmin(
+    @Body() dto: LoginDto,
+  ): Promise<{ access_token: string; admin: UserResponseLoginDto; }> {
+    return this.authService.loginAdmin(dto);
   }
 
   @Public()
