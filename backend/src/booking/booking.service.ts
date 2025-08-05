@@ -15,6 +15,7 @@ import {
   customerUpdateStatusBooking,
   stylistUpdateStatusBooking,
 } from "./utils/update-status-booking";
+import { handleCancelledBooking } from "./utils/handle-cancelled-booking";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { RoleName } from "../common/enums/role-name.enum";
 import { BookingStatus } from "../common/enums/booking-status.enum";
@@ -26,25 +27,13 @@ export class BookingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBooking(
-    userId: string,
+    customerId: string,
     dto: CreateBookingDto,
   ): Promise<BookingResponseDto> {
     return this.prisma.$transaction(async (tx) => {
-      const customer = await tx.customer.findUnique({
-        where: { userId: userId },
-      });
-      if (!customer)
-        throw new NotFoundException(ERROR_MESSAGES.CUSTOMER.NOT_FOUND);
-
-      const stylist = await tx.stylist.findUnique({
-        where: { id: dto.stylistId },
-      });
-      if (!stylist)
-        throw new NotFoundException(ERROR_MESSAGES.STYLIST.NOT_FOUND);
-
       const services = await tx.service.findMany({
         where: { id: { in: dto.serviceIds } },
-        select: { duration: true, price: true },
+        select: { duration: true },
       });
 
       if (!services || services.length === 0) {
@@ -87,15 +76,13 @@ export class BookingService {
         }
       }
 
-      const totalPrice = services.reduce((sum, s) => sum + s.price, 0);
-
       const booking = await tx.booking.create({
         data: {
-          customerId: customer.id,
+          customerId,
           stylistId: dto.stylistId,
           salonId: dto.salonId,
           workScheduleId: dto.workScheduleId,
-          totalPrice,
+          totalPrice: dto.totalPrice,
           status: "PENDING",
           services: {
             create: dto.serviceIds.map((serviceId) => ({ serviceId })),
@@ -340,97 +327,59 @@ export class BookingService {
 
       const newStatus = getCancelStatus(firstSlot.startTime, 3);
 
-      return customerUpdateStatusBooking(
-        booking.id,
-        booking.customerId,
-        booking.customer.userId,
-        newStatus,
-      );
-    }
-    if (user.role === "STYLIST") {
-      if (booking.stylist.userId !== user.id) {
-        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
-      }
-      if (
-        ![BookingStatus.COMPLETED, BookingStatus.CANCELLED].includes(dto.status)
-      ) {
-        throw new BadRequestException(
-          ERROR_MESSAGES.BOOKING.INVALID_STATUS_FOR_STYLIST,
+      if (user.role === "CUSTOMER") {
+        return customerUpdateStatusBooking(
+          booking.id,
+          booking.customerId,
+          booking.customer.userId,
+          newStatus,
         );
       }
-      const firstSlot = booking.timeslots[0]?.timeSlot;
-      if (!firstSlot) {
-        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NO_TIMESLOT);
+
+      // STYLIST cập nhật completed hoặc cancelled
+      if (user.role === "STYLIST") {
+        if (booking.stylist.userId !== user.id) {
+          throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
+        }
+
+        if (
+          ![BookingStatus.COMPLETED, BookingStatus.CANCELLED].includes(dto.status)
+        ) {
+          throw new BadRequestException(
+            ERROR_MESSAGES.BOOKING.INVALID_STATUS_FOR_STYLIST,
+          );
+        }
+
+        const firstSlot = booking.timeslots[0]?.timeSlot;
+        if (!firstSlot) {
+          throw new BadRequestException(ERROR_MESSAGES.BOOKING.NO_TIMESLOT);
+        }
+
+        const newStatus = getCancelStatus(firstSlot.startTime, 3);
+
+        // Nếu CANCELLED thì xử lý trừ điểm
+        if (newStatus === BookingStatus.CANCELLED) {
+          await this.prisma.booking.update({
+            where: { id },
+            data: { status: newStatus },
+          });
+
+          await handleCancelledBooking(booking.customerId);
+
+          return { message: `Booking cancelled (${newStatus})` };
+        }
+
+        return stylistUpdateStatusBooking(
+          booking.id,
+          booking.customerId,
+          booking.customer.userId,
+          newStatus,
+        );
       }
 
-      const newStatus = getCancelStatus(firstSlot.startTime, 3);
-
-      return stylistUpdateStatusBooking(
-        booking.id,
-        booking.customerId,
-        booking.customer.userId,
-        newStatus,
+      throw new ForbiddenException(
+        ERROR_MESSAGES.BOOKING.ROLE_NOT_ALLOWED_UPDATE_STATUS,
       );
     }
-    throw new ForbiddenException(
-      ERROR_MESSAGES.BOOKING.ROLE_NOT_ALLOWED_UPDATE_STATUS,
-    );
-  }
-
-  async reviewBooking(
-    bookingId: string,
-    customerId: string,
-    dto: CreateReviewDto,
-  ) {
-    return this.prisma.$transaction(async (tx) => {
-      const booking = await tx.booking.findUnique({
-        where: { id: bookingId },
-      });
-
-      if (!booking) {
-        throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
-      }
-
-      if (booking.customerId !== customerId) {
-        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
-      }
-
-      if (booking.status !== "COMPLETED") {
-        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NOT_COMPLETED);
-      }
-
-      const existed = await tx.review.findUnique({
-        where: { bookingId },
-      });
-      if (existed) {
-        throw new BadRequestException(ERROR_MESSAGES.BOOKING.ALREADY_REVIEWED);
-      }
-
-      const review = await tx.review.create({
-        data: {
-          bookingId,
-          customerId,
-          stylistId: booking.stylistId,
-          rating: dto.rating,
-          content: dto.content,
-        },
-      });
-
-      const stats = await tx.review.aggregate({
-        where: { stylistId: booking.stylistId },
-        _avg: { rating: true },
-        _count: { rating: true },
-      });
-
-      await tx.stylist.update({
-        where: { id: booking.stylistId },
-        data: {
-          rating: stats._avg.rating || 0,
-          ratingCount: stats._count.rating,
-        },
-      });
-
-      return review;
-    });
   }
 }

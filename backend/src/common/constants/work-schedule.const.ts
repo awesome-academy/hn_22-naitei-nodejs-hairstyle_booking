@@ -1,3 +1,5 @@
+// src/common/constants/work-schedule.constant.ts
+
 // Ca sáng
 export const MORNING_START = { hour: 8, minute: 0 };
 export const MORNING_END = { hour: 11, minute: 30 };

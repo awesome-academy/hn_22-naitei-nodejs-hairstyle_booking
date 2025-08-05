@@ -65,8 +65,6 @@ export const ERROR_MESSAGES = {
     FORBIDDEN_VIEW: "You do not have permission to view this list of bookings",
     NO_TIMESLOT: "Booking has no timeslot",
     ONLY_PENDING_CAN_CANCEL: "Only pending bookings can be cancelled",
-    NOT_COMPLETED: "Booking must be completed to review",
-    ALREADY_REVIEWED: "This booking has been reviewed",
     INVALID_STATUS_FOR_STYLIST: "Invalid status for stylist",
     ROLE_NOT_ALLOWED_UPDATE_STATUS:
       "This role is not allowed to update booking status",

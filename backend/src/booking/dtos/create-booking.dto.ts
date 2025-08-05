@@ -7,6 +7,13 @@ export class CreateBookingDto {
   @IsUUID()
   salonId: string;
 
+<<<<<<< HEAD
+=======
+  @IsInt()
+  @Min(0)
+  totalPrice: number;
+
+>>>>>>> 5b223ae (cronjob & bookingflow)
   @IsArray()
   @ArrayNotEmpty()
   @IsUUID("all", { each: true })
@@ -16,7 +23,16 @@ export class CreateBookingDto {
   @ArrayNotEmpty()
   @IsUUID("all", { each: true })
   serviceIds: string[];
+<<<<<<< HEAD
+<<<<<<< HEAD
 
   @IsUUID()
   workScheduleId: string;
+=======
+>>>>>>> 5b223ae (cronjob & bookingflow)
+=======
+
+  @IsUUID()
+  workScheduleId: string;
+>>>>>>> 2be3561 (fix logic bookings & logic stylist DayOff approved)
 }

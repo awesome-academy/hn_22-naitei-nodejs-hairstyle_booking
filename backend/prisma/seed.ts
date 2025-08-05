@@ -24,6 +24,13 @@ async function main() {
     });
   }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  // 2. Bootstrap work schedules cho stylist
+>>>>>>> 5b223ae (cronjob & bookingflow)
+=======
+>>>>>>> bf85059 (fix logic update status booking)
   const stylists = await prisma.stylist.findMany();
   if (!stylists.length) {
     console.log("⚠️ Không có stylist nào trong hệ thống, bỏ qua tạo lịch.");

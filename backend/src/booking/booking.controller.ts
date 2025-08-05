@@ -11,7 +11,10 @@ import { BookingService } from "./booking.service";
 import { CreateBookingDto } from "./dtos/create-booking.dto";
 import { GetBookingsQueryDto } from "./dtos/get-bookings-query.dto";
 import { UpdateBookingStatusDto } from "./dtos/update-booking-status.dto";
+<<<<<<< HEAD
 import { CreateReviewDto } from "./dtos/create-review.dto";
+=======
+>>>>>>> 5b223ae (cronjob & bookingflow)
 import {
   BookingResponseDto,
   BookingListResponseDto,
@@ -58,6 +61,7 @@ export class BookingController {
   ) {
     return this.bookingService.updateBookingStatus(id, user, dto);
   }
+<<<<<<< HEAD
 
   @Post(":id/review")
   @Roles("CUSTOMER")
@@ -68,4 +72,6 @@ export class BookingController {
   ) {
     return this.bookingService.reviewBooking(bookingId, customerId, dto);
   }
+=======
+>>>>>>> 5b223ae (cronjob & bookingflow)
 }
