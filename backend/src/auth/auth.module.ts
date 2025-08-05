@@ -8,9 +8,13 @@ import { CustomerService } from "../user/customer.service";
 import { jwtConstants } from "../common/constants/jwt.constants";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
-
+import { JwtStrategy } from "./jwt.strategy";
+import { PassportModule } from "@nestjs/passport";
+import { ConfigModule } from "@nestjs/config";
 @Module({
   imports: [
+    ConfigModule,
+    PassportModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
@@ -24,6 +28,7 @@ import { EmailService } from "../email/email.service";
     CustomerService,
     OtpService,
     EmailService,
+    JwtStrategy,
   ],
   controllers: [AuthController],
   exports: [AuthService],
