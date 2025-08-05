@@ -7,4 +7,9 @@
 *.ntvs*
 *.njsproj
 *.sln
+<<<<<<< HEAD
 *.sw?
+=======
+*.sw?
+.env
+>>>>>>> 1556f1a (update)
