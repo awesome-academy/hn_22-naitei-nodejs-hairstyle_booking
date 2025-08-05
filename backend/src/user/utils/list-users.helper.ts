@@ -12,12 +12,20 @@ import {
 
 export async function getAllUsers(
   prisma: PrismaService,
+  skip = 0,
+  limit = 20,
+  page = 1,
 ): Promise<ListUserResponseDto> {
-  const users = await prisma.user.findMany({
-    include: {
-      role: true,
-    },
-  });
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      include: {
+        role: true,
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.user.count(),
+  ]);
 
   const data = users.map((user) =>
     buildUserResponse({
@@ -28,19 +36,29 @@ export async function getAllUsers(
 
   return {
     data,
-    total: data.length,
+    total,
+    page,
+    limit,
   };
 }
 
 export async function getCustomers(
   prisma: PrismaService,
+  skip = 0,
+  limit = 20,
+  page = 1,
 ): Promise<ListCustomerResponseDto> {
-  const customers = await prisma.customer.findMany({
-    include: {
-      user: { include: { role: true } },
-      memberTier: true,
-    },
-  });
+  const [customers, total] = await Promise.all([
+    prisma.customer.findMany({
+      include: {
+        user: { include: { role: true } },
+        memberTier: true,
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.customer.count(),
+  ]);
 
   return {
     data: customers.map((c) =>
@@ -51,19 +69,29 @@ export async function getCustomers(
         memberTier: c.memberTier,
       }),
     ),
-    total: customers.length,
+    total,
+    page,
+    limit,
   };
 }
 
 export async function getStylists(
   prisma: PrismaService,
+  skip = 0,
+  limit = 20,
+  page = 1,
 ): Promise<ListStylistResponseDto> {
-  const stylists = await prisma.stylist.findMany({
-    include: {
-      user: { include: { role: true } },
-      salon: true,
-    },
-  });
+  const [stylists, total] = await Promise.all([
+    prisma.stylist.findMany({
+      include: {
+        user: { include: { role: true } },
+        salon: true,
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.stylist.count(),
+  ]);
 
   return {
     data: stylists.map((s) =>
@@ -73,24 +101,36 @@ export async function getStylists(
         ratingCount: s.ratingCount,
       }),
     ),
-    total: stylists.length,
+    total,
+    page,
+    limit,
   };
 }
 
 export async function getManagers(
   prisma: PrismaService,
+  skip = 0,
+  limit = 20,
+  page = 1,
 ): Promise<ListManagerResponseDto> {
-  const managers = await prisma.manager.findMany({
-    include: {
-      user: { include: { role: true } },
-      salon: true,
-    },
-  });
+  const [managers, total] = await Promise.all([
+    prisma.manager.findMany({
+      include: {
+        user: { include: { role: true } },
+        salon: true,
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.manager.count(),
+  ]);
 
   return {
     data: managers.map((m) =>
       buildManagerResponse(m.user, { salonId: m.salonId }),
     ),
-    total: managers.length,
+    total,
+    page,
+    limit,
   };
 }

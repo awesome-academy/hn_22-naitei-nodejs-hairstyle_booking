@@ -20,12 +20,19 @@ export class UserController {
   findAll(
     @CurrentUser() user: JwtPayload,
     @Query("role") role?: "CUSTOMER" | "STYLIST" | "MANAGER",
+    @Query("page") page = 1,
+    @Query("limit") limit = 20,
   ): Promise<
     | ListCustomerResponseDto
     | ListStylistResponseDto
     | ListManagerResponseDto
     | ListUserResponseDto
   > {
-    return this.userService.findUsersByViewer(user, role);
+    return this.userService.findUsersByViewer(
+      user,
+      role,
+      Number(page),
+      Number(limit),
+    );
   }
 }

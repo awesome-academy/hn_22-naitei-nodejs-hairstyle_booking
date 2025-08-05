@@ -16,6 +16,8 @@ export class CustomerResponseDto extends UserResponseDto {
 export class ListCustomerResponseDto {
   data: CustomerResponseDto[];
   total: number;
+  page: number;
+  limit: number;
 }
 
 export class AuthCustomerResponseDto {

@@ -285,12 +285,15 @@ export class UserService {
   async findUsersByViewer(
     user: JwtPayload,
     role?: "CUSTOMER" | "STYLIST" | "MANAGER",
+    page = 1,
+    limit = 20,
   ): Promise<
     | ListCustomerResponseDto
     | ListStylistResponseDto
     | ListManagerResponseDto
     | ListUserResponseDto
   > {
+    const skip = (page - 1) * limit;
     const viewerRole = user.role;
 
     if (viewerRole === "ADMIN") {
@@ -315,13 +318,20 @@ export class UserService {
 
         if (!manager) throw new Error(ERROR_MESSAGES.MANAGER.NOT_FOUND);
 
-        const stylists = await this.prisma.stylist.findMany({
-          where: { salonId: manager.salonId },
-          include: {
-            user: { include: { role: true } },
-            salon: true,
-          },
-        });
+        const [stylists, total] = await Promise.all([
+          this.prisma.stylist.findMany({
+            where: { salonId: manager.salonId },
+            skip,
+            take: limit,
+            include: {
+              user: { include: { role: true } },
+              salon: true,
+            },
+          }),
+          this.prisma.stylist.count({
+            where: { salonId: manager.salonId },
+          }),
+        ]);
 
         return {
           data: stylists.map((s) =>
@@ -331,7 +341,9 @@ export class UserService {
               ratingCount: s.ratingCount,
             }),
           ),
-          total: stylists.length,
+          total,
+          page,
+          limit,
         };
       } else {
         throw new ForbiddenException(

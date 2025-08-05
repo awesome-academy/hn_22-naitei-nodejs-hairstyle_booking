@@ -18,4 +18,6 @@ export class UserResponseDto {
 export class ListUserResponseDto {
   data: UserResponseDto[];
   total: number;
+  page: number;
+  limit: number;
 }

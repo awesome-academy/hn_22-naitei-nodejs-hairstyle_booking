@@ -9,6 +9,8 @@ export class StylistResponseDto extends UserResponseDto {
 export class ListStylistResponseDto {
   data: StylistResponseDto[];
   total: number;
+  page: number;
+  limit: number;
 }
 
 export class AuthStylistResponseDto {

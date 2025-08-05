@@ -11,4 +11,6 @@ export class AuthManagerResponseDto {
 export class ListManagerResponseDto {
   data: ManagerResponseDto[];
   total: number;
+  page: number;
+  limit: number;
 }
