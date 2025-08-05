@@ -1,7 +1,11 @@
+import { SUCCESS_MESSAGES } from "src/common/constants/success.constants";
 import {
   SalonResponseDto,
   SalonListResponseDto,
   PaginationDto,
+  SalonCreateResponseDto,
+  SalonUpdateResponseDto,
+  SalonDeleteResponseDto,
 } from "../dto/salon-response.dto";
 
 // Interface cho data từ Prisma
@@ -38,5 +42,29 @@ export function buildSalonListResponse(
   return {
     data: salons.map(buildSalonResponse),
     pagination,
+  };
+}
+
+export function buildSalonCreateResponse(
+  salon: SalonData,
+): SalonCreateResponseDto {
+  return {
+    message: SUCCESS_MESSAGES.SALON.CREATED,
+    data: buildSalonResponse(salon),
+  };
+}
+
+export function buildSalonUpdateResponse(
+  salon: SalonData,
+): SalonUpdateResponseDto {
+  return {
+    message: SUCCESS_MESSAGES.SALON.UPDATED,
+    data: buildSalonResponse(salon),
+  };
+}
+
+export function buildSalonDeleteResponse(): SalonDeleteResponseDto {
+  return {
+    message: SUCCESS_MESSAGES.SALON.DELETED,
   };
 }
