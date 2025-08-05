@@ -1,27 +1,14 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { RegisterDto } from "./dtos/register.dto";
 import { LoginDto } from "./dtos/login.dto"; 
-
-
 import { AuthCustomerResponseDto } from "../user/dtos/customer/auth-customer.dto";
 import { CustomerResponseLoginDto} from "../user/dtos/customer/auth-customer.dto"; 
-
 import { AuthStylistResponseDto, StylistResponseLoginDto } from "../user/dtos/stylist/auth-stylist.dto";
-
 import { UserService } from "../user/user.service";
 import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 import { PrismaService } from "src/prisma/prisma.service";
-
-enum RoleName {
-  CUSTOMER = 'CUSTOMER',
-  STYLIST = 'STYLIST',
-  MANAGER = 'MANAGER', 
-}
-
-import { LoginDto } from "./dtos/login.dto";
-import { buildCustomerLoginResponse } from "../user/utils/response-builder";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
 import {
@@ -30,10 +17,18 @@ import {
   VerifyOtpDto,
   VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
-import { PrismaService } from "src/prisma/prisma.service";
 import { OtpType } from "src/otp/enums/otp-type.enum";
-import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 import * as bcrypt from "bcrypt";
+import { ManagerResponseLoginDto } from "src/user/dtos/manager/auth-manager.dto";
+import { UserResponseLoginDto } from "src/user/dtos/user/user-response-login.dto";
+
+enum RoleName {
+  CUSTOMER = 'CUSTOMER',
+  STYLIST = 'STYLIST',
+  MANAGER = 'MANAGER', 
+  ADMIN = 'ADMIN',
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -64,9 +59,9 @@ export class AuthService {
 
   async login(
     dto: LoginDto,
-  ): Promise<AuthCustomerResponseDto | AuthStylistResponseDto> {
+  ): Promise<AuthCustomerResponseDto | AuthStylistResponseDto | ManagerResponseLoginDto > {
     const { email, password } = dto;
-    let userResponse: CustomerResponseLoginDto | StylistResponseLoginDto | null = null;
+    let userResponse: CustomerResponseLoginDto | StylistResponseLoginDto | ManagerResponseLoginDto | null = null;
     let userRoleName: RoleName;
 
     const user = await this.prisma.user.findUnique({
@@ -87,10 +82,14 @@ export class AuthService {
       case RoleName.STYLIST:
         userResponse = await this.userService.validateStylist(email, password);
         break;
+      case RoleName.MANAGER:
+        userResponse = await this.userService.validateManager(email, password);
+        break;
       default:
-        throw new UnauthorizedException(ERROR_MESSAGES.ROLE.NOT_FOUND);
+        throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
     }
-
+    
+    
     const payload = {
       sub: userResponse.id,
       email: userResponse.email,
@@ -105,6 +104,23 @@ export class AuthService {
       return { access_token, stylist: userResponse as StylistResponseLoginDto };
     }
     throw new Error('Unexpected user type during login response creation.');
+  }
+
+  async loginAdmin(
+    dto: LoginDto,
+  ): Promise<{ access_token: string; admin: UserResponseLoginDto; }> {
+    const { email, password } = dto;
+
+    const adminUser = await this.userService.validateAdmin(email, password);
+
+    const payload = {
+      sub: adminUser.id,
+      email: adminUser.email,
+      role: adminUser.role.name,
+    };
+    const access_token = await this.jwtService.signAsync(payload);
+
+    return { access_token, admin: adminUser };
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
@@ -140,7 +156,6 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const user = await this.getActiveUserByEmail(dto.email);
 
-    // Verify reset token instead of OTP
     await this.otpService.verifyResetToken(user.id, dto.resetToken);
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
