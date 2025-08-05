@@ -1,4 +1,4 @@
-export class UserResponseLoginDto {
+export class UserResponseDto {
   id: string;
   fullName: string;
   email: string;
@@ -13,4 +13,9 @@ export class UserResponseLoginDto {
     name: string;
     description?: string;
   };
+}
+
+export class ListUserResponseDto {
+  data: UserResponseDto[];
+  total: number;
 }

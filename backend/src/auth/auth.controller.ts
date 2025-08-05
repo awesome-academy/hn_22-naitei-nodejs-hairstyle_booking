@@ -2,10 +2,10 @@ import { Controller, Post, Body } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dtos/register.dto";
 import { Public } from "../common/decorators/public.decorator";
-import { AuthCustomerResponseDto } from "../user/dtos/customer/auth-customer.dto";
+import { AuthCustomerResponseDto } from "../user/dtos/customer/customer-response.dto";
 import { LoginDto } from "./dtos/login.dto";
 import { CreateStylistDto } from "src/user/dtos/stylist/create-stylist.dto";
-import { AuthStylistResponseDto } from "src/user/dtos/stylist/auth-stylist.dto";
+import { AuthStylistResponseDto } from "src/user/dtos/stylist/stylist-response.dto";
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -27,7 +27,9 @@ export class AuthController {
 
   @Public()
   @Post("login")
-  async login(@Body() dto: LoginDto): Promise<AuthCustomerResponseDto | AuthStylistResponseDto> {
+  async login(
+    @Body() dto: LoginDto,
+  ): Promise<AuthCustomerResponseDto | AuthStylistResponseDto> {
     return this.authService.login(dto);
   }
 

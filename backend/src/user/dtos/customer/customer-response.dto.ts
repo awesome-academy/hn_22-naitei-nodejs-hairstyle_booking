@@ -1,6 +1,6 @@
-import { UserResponseLoginDto } from "../user/user-response-login.dto";
+import { UserResponseDto } from "../user/user-response.dto";
 
-export class CustomerResponseLoginDto extends UserResponseLoginDto {
+export class CustomerResponseDto extends UserResponseDto {
   totalCompleted: number;
   totalCancelled: number;
   totalSpending: number;
@@ -13,7 +13,12 @@ export class CustomerResponseLoginDto extends UserResponseLoginDto {
   };
 }
 
+export class ListCustomerResponseDto {
+  data: CustomerResponseDto[];
+  total: number;
+}
+
 export class AuthCustomerResponseDto {
   access_token: string;
-  customer: CustomerResponseLoginDto;
+  customer: CustomerResponseDto;
 }

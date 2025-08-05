@@ -2,14 +2,28 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CustomerService } from "./customer.service";
 import { CreateCustomerDto } from "./dtos/customer/create-customer.dto";
-import { CustomerResponseLoginDto } from "./dtos/customer/auth-customer.dto";
+import { CustomerResponseDto } from "./dtos/customer/customer-response.dto";
 import * as bcrypt from "bcrypt";
-import { buildCustomerLoginResponse, buildStylistLoginResponse } from "./utils/response-builder"; 
+import {
+  buildCustomerResponse,
+  buildStylistResponse,
+} from "./utils/response-builder";
 import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
-
 import { CreateStylistDto } from "./dtos/stylist/create-stylist.dto";
-import { StylistResponseLoginDto } from "./dtos/stylist/auth-stylist.dto";
+import { StylistResponseDto } from "./dtos/stylist/stylist-response.dto";
+import { JwtPayload } from "../common/types/jwt-payload.interface";
+import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
+import { ListCustomerResponseDto } from "./dtos/customer/customer-response.dto";
+import { ListStylistResponseDto } from "./dtos/stylist/stylist-response.dto";
+import { ListUserResponseDto } from "./dtos/user/user-response.dto";
+import { ListManagerResponseDto } from "./dtos/manager/manager-response.dto";
+import {
+  getAllUsers,
+  getCustomers,
+  getStylists,
+  getManagers,
+} from "./utils/list-users.helper";
 
 @Injectable()
 export class UserService {
@@ -24,7 +38,7 @@ export class UserService {
 
   async createUserCustomer(
     dto: CreateCustomerDto,
-  ): Promise<CustomerResponseLoginDto> {
+  ): Promise<CustomerResponseDto> {
     const { email, phone, password, ...rest } = dto;
 
     if (await this.prisma.user.findUnique({ where: { email } })) {
@@ -56,13 +70,13 @@ export class UserService {
       userId: user.id,
     });
 
-    return buildCustomerLoginResponse(user, customer);
+    return buildCustomerResponse(user, customer);
   }
 
   async validateCustomer(
     email: string,
     password: string,
-  ): Promise<CustomerResponseLoginDto> {
+  ): Promise<CustomerResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: {
@@ -88,14 +102,11 @@ export class UserService {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
     }
 
-    return buildCustomerLoginResponse(user, user.customer);
+    return buildCustomerResponse(user, user.customer);
   }
 
-
-   async createUserStylist(
-    dto: CreateStylistDto,
-  ): Promise<StylistResponseLoginDto> {
-    const { email, phone, password,salonId, ...rest } = dto; 
+  async createUserStylist(dto: CreateStylistDto): Promise<StylistResponseDto> {
+    const { email, phone, password, salonId, ...rest } = dto;
 
     if (await this.prisma.user.findUnique({ where: { email } })) {
       throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
@@ -137,19 +148,19 @@ export class UserService {
         role: true,
         stylist: {
           include: {
-            salon: true, 
+            salon: true,
           },
         },
       },
     });
 
-    return buildStylistLoginResponse(user, user.stylist);
+    return buildStylistResponse(user, user.stylist);
   }
 
   async validateStylist(
     email: string,
     password: string,
-  ): Promise<StylistResponseLoginDto> {
+  ): Promise<StylistResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: {
@@ -175,6 +186,67 @@ export class UserService {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
     }
 
-    return buildStylistLoginResponse(user, user.stylist);
+    return buildStylistResponse(user, user.stylist);
+  }
+
+  async findUsersByViewer(
+    user: JwtPayload,
+    role?: "CUSTOMER" | "STYLIST" | "MANAGER",
+  ): Promise<
+    | ListCustomerResponseDto
+    | ListStylistResponseDto
+    | ListManagerResponseDto
+    | ListUserResponseDto
+  > {
+    const viewerRole = user.role;
+
+    if (viewerRole === "ADMIN") {
+      switch (role) {
+        case "CUSTOMER":
+          return getCustomers(this.prisma);
+        case "STYLIST":
+          return getStylists(this.prisma);
+        case "MANAGER":
+          return getManagers(this.prisma);
+        default:
+          return getAllUsers(this.prisma);
+      }
+    }
+
+    if (viewerRole === "MANAGER") {
+      if (!role || role === "STYLIST") {
+        const manager = await this.prisma.manager.findUnique({
+          where: { userId: user.id },
+          select: { salonId: true },
+        });
+
+        if (!manager) throw new Error(ERROR_MESSAGES.MANAGER.NOT_FOUND);
+
+        const stylists = await this.prisma.stylist.findMany({
+          where: { salonId: manager.salonId },
+          include: {
+            user: { include: { role: true } },
+            salon: true,
+          },
+        });
+
+        return {
+          data: stylists.map((s) =>
+            buildStylistResponse(s.user, {
+              salonId: s.salon.id,
+              rating: s.rating,
+              ratingCount: s.ratingCount,
+            }),
+          ),
+          total: stylists.length,
+        };
+      } else {
+        throw new ForbiddenException(
+          ERROR_MESSAGES.ROLE.NOT_ALLOWED_FOR_MANAGER,
+        );
+      }
+    } else {
+      throw new ForbiddenException(ERROR_MESSAGES.ROLE.YOU_ARE_NOT_ADMIN);
+    }
   }
 }
