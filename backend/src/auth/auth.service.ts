@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { RegisterDto } from "./dtos/register.dto";
 import { LoginDto } from "./dtos/login.dto";
@@ -99,7 +99,8 @@ export class AuthService {
     if (!userResponse) {
       throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
     }
-
+    
+    
     const payload = {
       sub: userResponse.id,
       email: userResponse.email,
@@ -129,7 +130,7 @@ export class AuthService {
     if (!adminUser) {
       throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
     }
-
+      
     const payload = {
       sub: adminUser.id,
       email: adminUser.email,

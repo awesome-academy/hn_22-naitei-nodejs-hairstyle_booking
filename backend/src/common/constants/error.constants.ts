@@ -19,6 +19,9 @@ export const ERROR_MESSAGES = {
   ROLE: {
     NOT_FOUND: "ROLE NOT FOUND",
   },
+  ROLE:{
+    NOT_FOUND: "ROLE NOT FOUND"
+  },
   OTP: {
     INVALID_OR_EXPIRED: "OTP is invalid or expired",
     EMAIL_SEND_FAILED: "Unable to send OTP email",
