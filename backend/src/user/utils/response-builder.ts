@@ -6,7 +6,7 @@ import { UserResponseLoginDto } from "../dtos/user/user-response-login.dto";
 interface RoleData {
   id: string;
   name: string;
-  description?: string | null; 
+  description?: string | null;
 }
 
 interface UserData {
@@ -78,14 +78,14 @@ interface SalonData {
 }
 
 interface StylistData {
-  id: string; 
+  id: string;
   userId: string;
   salonId: string;
   rating: number;
   ratingCount: number;
   createdAt: Date;
   updatedAt: Date;
-  salon: SalonData; 
+  salon: SalonData;
 }
 
 export function buildStylistLoginResponse(
@@ -108,9 +108,9 @@ export function buildStylistLoginResponse(
     },
     rating: stylist?.rating ?? 0,
     ratingCount: stylist?.ratingCount ?? 0,
-    salonId: stylist?.salonId ?? '', 
-    salonName: stylist?.salon?.name ?? '', 
-    salonAddress: stylist?.salon?.address ?? '',
+    salonId: stylist?.salonId ?? "",
+    salonName: stylist?.salon?.name ?? "",
+    salonAddress: stylist?.salon?.address ?? "",
   };
 }
 

@@ -95,11 +95,10 @@ export class UserService {
     return buildCustomerLoginResponse(user, user.customer);
   }
 
-
-   async createUserStylist(
+  async createUserStylist(
     dto: CreateStylistDto,
   ): Promise<StylistResponseLoginDto> {
-    const { email, phone, password,salonId, ...rest } = dto; 
+    const { email, phone, password, salonId, ...rest } = dto;
 
     if (await this.prisma.user.findUnique({ where: { email } })) {
       throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
@@ -141,7 +140,7 @@ export class UserService {
         role: true,
         stylist: {
           include: {
-            salon: true, 
+            salon: true,
           },
         },
       },

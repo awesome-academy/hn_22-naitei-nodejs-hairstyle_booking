@@ -39,7 +39,6 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  
   async registerCustomer(dto: RegisterDto): Promise<AuthCustomerResponseDto> {
     const customer = await this.userService.createUserCustomer(dto);
 
@@ -66,14 +65,14 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: { role: true }, 
+      include: { role: true },
     });
 
     if (!user) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
 
-    userRoleName = user.role.name as RoleName; 
+    const userRoleName: RoleName = user.role.name as RoleName;
 
     switch (userRoleName) {
       case RoleName.CUSTOMER:
@@ -98,12 +97,15 @@ export class AuthService {
 
     const access_token = await this.jwtService.signAsync(payload);
 
-    if (userResponse.role.name === RoleName.CUSTOMER) {
-      return { access_token, customer: userResponse as CustomerResponseLoginDto };
-    } else if (userResponse.role.name === RoleName.STYLIST) {
+    if (userResponse.role.name === RoleName.CUSTOMER.toString()) {
+      return {
+        access_token,
+        customer: userResponse as CustomerResponseLoginDto,
+      };
+    } else if (userResponse.role.name === RoleName.STYLIST.toString()) {
       return { access_token, stylist: userResponse as StylistResponseLoginDto };
     }
-    throw new Error('Unexpected user type during login response creation.');
+    throw new Error("Unexpected user type during login response creation.");
   }
 
   async loginAdmin(

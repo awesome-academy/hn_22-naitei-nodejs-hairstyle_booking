@@ -1,7 +1,7 @@
 import { UserResponseLoginDto } from "../user/user-response-login.dto";
 
 export class StylistResponseLoginDto extends UserResponseLoginDto {
-  rating: number; 
+  rating: number;
   ratingCount: number;
   salonId: string;
   salonName: string;

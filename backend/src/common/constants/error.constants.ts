@@ -14,7 +14,10 @@ export const ERROR_MESSAGES = {
     UN_AUTH: "INVALID_CREDENTIALS"
   },
   SALON: {
-  NOT_FOUND: "Salon not found",
+    NOT_FOUND: "Salon not found",
+  },
+  ROLE: {
+    NOT_FOUND: "ROLE NOT FOUND",
   },
   ROLE:{
     NOT_FOUND: "ROLE NOT FOUND"
