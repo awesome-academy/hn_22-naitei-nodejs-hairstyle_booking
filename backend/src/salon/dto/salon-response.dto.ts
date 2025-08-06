@@ -1,3 +1,5 @@
+import { PaginationDto } from "src/common/dtos/pagination.dto";
+
 export interface SalonResponseDto {
   id: string;
   name: string;
@@ -7,13 +9,6 @@ export interface SalonResponseDto {
   stylistCount: number;
   totalBookings: number;
   createdAt: Date;
-}
-
-export interface PaginationDto {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
 }
 
 export interface SalonListResponseDto {

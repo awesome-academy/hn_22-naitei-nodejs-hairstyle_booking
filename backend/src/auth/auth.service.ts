@@ -9,15 +9,15 @@ import { LoginDto } from "./dtos/login.dto";
 import {
   ManagerResponseDto,
   AuthManagerResponseDto,
-} from "../user/dtos/manager/manager-response.dto";
+} from "../manager/dtos/manager-response.dto";
 import {
   CustomerResponseDto,
   AuthCustomerResponseDto,
-} from "../user/dtos/customer/customer-response.dto";
+} from "../customer/dtos/customer-response.dto";
 import {
   AuthStylistResponseDto,
   StylistResponseDto,
-} from "../user/dtos/stylist/stylist-response.dto";
+} from "../stylist/dto/stylist-response.dto";
 import { UserResponseDto } from "../user/dtos/user/user-response.dto";
 import { UserService } from "../user/user.service";
 import { ERROR_MESSAGES } from "src/common/constants/error.constants";

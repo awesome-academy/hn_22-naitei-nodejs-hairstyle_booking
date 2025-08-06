@@ -5,9 +5,9 @@ import { RolesGuard } from "../common/guards/roles.guard";
 import { Roles } from "../common/decorators/roles.decorator";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
-import { ListCustomerResponseDto } from "./dtos/customer/customer-response.dto";
-import { ListStylistResponseDto } from "./dtos/stylist/stylist-response.dto";
-import { ListManagerResponseDto } from "./dtos/manager/manager-response.dto";
+import { ListCustomerResponseDto } from "../customer/dtos/customer-response.dto";
+import { ListStylistResponseDto } from "../stylist/dto/stylist-response.dto";
+import { ListManagerResponseDto } from "../manager/dtos/manager-response.dto";
 import { ListUserResponseDto } from "./dtos/user/user-response.dto";
 
 @Controller("users")

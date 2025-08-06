@@ -1,4 +1,4 @@
-import { UserResponseDto } from "../user/user-response.dto";
+import { UserResponseDto } from "../../user/dtos/user/user-response.dto";
 export class ManagerResponseDto extends UserResponseDto {
   salonId: string;
 }

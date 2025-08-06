@@ -9,9 +9,9 @@ import {
   VerifyOtpDto,
   VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
-import { AuthStylistResponseDto } from "src/user/dtos/stylist/stylist-response.dto";
-import { AuthCustomerResponseDto } from "../user/dtos/customer/customer-response.dto";
-import { AuthManagerResponseDto } from "src/user/dtos/manager/manager-response.dto";
+import { AuthStylistResponseDto } from "../stylist/dto/stylist-response.dto";
+import { AuthCustomerResponseDto } from "../customer/dtos/customer-response.dto";
+import { AuthManagerResponseDto } from "src/manager/dtos/manager-response.dto";
 import { UserResponseDto } from "src/user/dtos/user/user-response.dto";
 
 @Controller("auth")

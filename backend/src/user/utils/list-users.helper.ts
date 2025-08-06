@@ -1,8 +1,8 @@
 import { PrismaService } from "src/prisma/prisma.service";
 import { ListUserResponseDto } from "../dtos/user/user-response.dto";
-import { ListCustomerResponseDto } from "../dtos/customer/customer-response.dto";
-import { ListStylistResponseDto } from "../dtos/stylist/stylist-response.dto";
-import { ListManagerResponseDto } from "../dtos/manager/manager-response.dto";
+import { ListCustomerResponseDto } from "../../customer/dtos/customer-response.dto";
+import { ListStylistResponseDto } from "../../stylist/dto/stylist-response.dto";
+import { ListManagerResponseDto } from "../../manager/dtos/manager-response.dto";
 import {
   buildUserResponse,
   buildCustomerResponse,

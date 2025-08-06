@@ -32,7 +32,6 @@ export class StylistService {
     if (minRating !== undefined) {
       where.rating = { gte: minRating };
     }
-
     const [stylists, total] = await Promise.all([
       this.prisma.stylist.findMany({
         where,
@@ -43,22 +42,23 @@ export class StylistService {
             select: {
               id: true,
               fullName: true,
-              avatar: true,
+              email: true,
               phone: true,
+              avatar: true,
+              gender: true,
+              isActive: true,
+              createdAt: true,
+              updatedAt: true,
+              role: {
+                select: {
+                  name: true,
+                },
+              },
             },
           },
           salon: {
             select: {
               id: true,
-              name: true,
-              address: true,
-            },
-          },
-          _count: {
-            select: {
-              bookings: true,
-              reviews: true,
-              favoritedBy: true,
             },
           },
         },

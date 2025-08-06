@@ -4,7 +4,7 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { CustomerService } from "../user/customer.service";
+import { CustomerService } from "../customer/customer.service";
 import { jwtConstants } from "../common/constants/jwt.constants";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";

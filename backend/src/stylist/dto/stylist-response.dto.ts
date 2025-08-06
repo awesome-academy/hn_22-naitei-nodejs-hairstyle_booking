@@ -1,27 +1,22 @@
-export interface StylistResponseDto {
-  id: string;
-  userId: string;
-  name: string;
-  avatar: string | null;
-  phone: string | null;
+import { UserResponseDto } from "src/user/dtos/user/user-response.dto";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
+
+export interface StylistResponseDto extends UserResponseDto {
   rating: number;
   ratingCount: number;
-  salon: {
-    id: string;
-    name: string;
-    address: string;
-  };
-  totalBookings: number;
-  totalReviews: number;
-  totalFavorites: number;
-  createdAt: Date;
+  salonId: string;
 }
 
-export interface PaginationDto {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
+export class ListStylistResponseDto {
+  data: StylistResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export class AuthStylistResponseDto {
+  access_token: string;
+  stylist: StylistResponseDto;
 }
 
 export interface StylistListResponseDto {

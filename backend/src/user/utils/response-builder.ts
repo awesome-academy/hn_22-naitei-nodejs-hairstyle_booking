@@ -1,7 +1,7 @@
-import { CustomerResponseDto } from "../dtos/customer/customer-response.dto";
-import { StylistResponseDto } from "../dtos/stylist/stylist-response.dto";
+import { CustomerResponseDto } from "../../customer/dtos/customer-response.dto";
+import { StylistResponseDto } from "../../stylist/dto/stylist-response.dto";
 import { UserResponseDto } from "../dtos/user/user-response.dto";
-import { ManagerResponseDto } from "../dtos/manager/manager-response.dto";
+import { ManagerResponseDto } from "../../manager/dtos/manager-response.dto";
 
 interface RoleData {
   name: string;

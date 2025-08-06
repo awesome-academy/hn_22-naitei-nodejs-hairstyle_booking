@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CustomerService } from "./customer.service";
-import { CreateCustomerDto } from "./dtos/customer/create-customer.dto";
-import { CreateManagerDto } from "./dtos/manager/create-manager.dto";
-import { CreateStylistDto } from "./dtos/stylist/create-stylist.dto";
-import { ManagerResponseDto } from "./dtos/manager/manager-response.dto";
+import { CustomerService } from "../customer/customer.service";
+import { CreateCustomerDto } from "../customer/dtos/create-customer.dto";
+import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
+import { CreateStylistDto } from "../stylist/dto/create-stylist.dto";
+import { ManagerResponseDto } from "../manager/dtos/manager-response.dto";
 import * as bcrypt from "bcrypt";
 import {
   buildCustomerResponse,
@@ -19,16 +19,16 @@ import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exceptio
 import {
   ListCustomerResponseDto,
   CustomerResponseDto,
-} from "./dtos/customer/customer-response.dto";
+} from "../customer/dtos/customer-response.dto";
 import {
   ListStylistResponseDto,
   StylistResponseDto,
-} from "./dtos/stylist/stylist-response.dto";
+} from "../stylist/dto/stylist-response.dto";
 import {
   ListUserResponseDto,
   UserResponseDto,
 } from "./dtos/user/user-response.dto";
-import { ListManagerResponseDto } from "./dtos/manager/manager-response.dto";
+import { ListManagerResponseDto } from "../manager/dtos/manager-response.dto";
 import {
   getAllUsers,
   getCustomers,
