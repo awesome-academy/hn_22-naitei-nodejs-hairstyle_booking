@@ -2,17 +2,15 @@ import { Controller, Post, Body } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dtos/register.dto";
 import { Public } from "../common/decorators/public.decorator";
-import { AuthCustomerResponseDto } from "../user/dtos/customer/customer-response.dto";
 import { LoginDto } from "./dtos/login.dto";
-import { CreateStylistDto } from "src/user/dtos/stylist/create-stylist.dto";
-import { AuthStylistResponseDto } from "src/user/dtos/stylist/stylist-response.dto";
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
   VerifyOtpDto,
   VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
-import { ManagerResponseDto } from "src/user/dtos/manager/manager-response.dto";
+import { AuthStylistResponseDto } from "src/user/dtos/stylist/stylist-response.dto";
+import { AuthCustomerResponseDto } from "../user/dtos/customer/customer-response.dto";
 import { AuthManagerResponseDto } from "src/user/dtos/manager/manager-response.dto";
 import { UserResponseDto } from "src/user/dtos/user/user-response.dto";
 

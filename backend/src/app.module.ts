@@ -8,6 +8,9 @@ import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { UserModule } from "./user/user.module";
 import { ConfigModule } from "@nestjs/config";
+import { SalonModule } from "./salon/salon.module";
+import { StylistModule } from "./stylist/stylist.module";
+import { ServiceModule } from "./service/service.module";
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import { ConfigModule } from "@nestjs/config";
     PrismaModule,
     AuthModule,
     UserModule,
+    SalonModule,
+    StylistModule,
+    ServiceModule,
   ],
   controllers: [AppController],
   providers: [
