@@ -2,17 +2,17 @@ import { Controller, Post, Body } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dtos/register.dto";
 import { Public } from "../common/decorators/public.decorator";
-import { AuthCustomerResponseDto } from "../user/dtos/customer/auth-customer.dto";
 import { LoginDto } from "./dtos/login.dto";
-import { AuthStylistResponseDto } from "src/user/dtos/stylist/auth-stylist.dto";
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
   VerifyOtpDto,
   VerifyOtpResponseDto,
 } from "src/auth/dtos/forgot-password.dto";
-import { ManagerResponseLoginDto } from "src/user/dtos/manager/auth-manager.dto";
-import { UserResponseLoginDto } from "src/user/dtos/user/user-response-login.dto";
+import { AuthStylistResponseDto } from "src/user/dtos/stylist/stylist-response.dto";
+import { AuthCustomerResponseDto } from "../user/dtos/customer/customer-response.dto";
+import { AuthManagerResponseDto } from "src/user/dtos/manager/manager-response.dto";
+import { UserResponseDto } from "src/user/dtos/user/user-response.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -31,7 +31,7 @@ export class AuthController {
   async login(
     @Body() dto: LoginDto,
   ): Promise<
-    AuthCustomerResponseDto | AuthStylistResponseDto | ManagerResponseLoginDto
+    AuthCustomerResponseDto | AuthStylistResponseDto | AuthManagerResponseDto
   > {
     return this.authService.login(dto);
   }
@@ -40,7 +40,7 @@ export class AuthController {
   @Post("login/admin")
   async loginAdmin(
     @Body() dto: LoginDto,
-  ): Promise<{ access_token: string; admin: UserResponseLoginDto }> {
+  ): Promise<{ access_token: string; admin: UserResponseDto }> {
     return this.authService.loginAdmin(dto);
   }
 

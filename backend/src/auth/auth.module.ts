@@ -8,9 +8,10 @@ import { CustomerService } from "../user/customer.service";
 import { jwtConstants } from "../common/constants/jwt.constants";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
-import { JwtStrategy } from "./jwt.strategy";
-import { PassportModule } from "@nestjs/passport";
 import { ConfigModule } from "@nestjs/config";
+import { PassportModule } from "@nestjs/passport";
+import { JwtStrategy } from "./jwt.strategy";
+
 @Module({
   imports: [
     ConfigModule,
@@ -20,6 +21,8 @@ import { ConfigModule } from "@nestjs/config";
       secret: jwtConstants.secret,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
     }),
+    PassportModule,
+    ConfigModule,
   ],
   providers: [
     AuthService,
