@@ -5,12 +5,9 @@ import {
 import { PaginationDto } from "src/common/dtos/pagination.dto";
 
 interface StylistData {
-  id: string;
   rating: number;
   ratingCount: number;
-  salon: {
-    id: string;
-  };
+  salonId: string;
   user: {
     id: string;
     fullName: string | null;
@@ -41,7 +38,7 @@ export function buildStylistResponse(stylist: StylistData): StylistResponseDto {
     role: stylist.user.role,
     rating: stylist.rating,
     ratingCount: stylist.ratingCount,
-    salonId: stylist.salon.id,
+    salonId: stylist.salonId,
   };
 }
 

@@ -1,4 +1,6 @@
 import { UserResponseDto } from "../../user/dtos/user/user-response.dto";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
+
 export class ManagerResponseDto extends UserResponseDto {
   salonId: string;
 }
@@ -8,9 +10,7 @@ export class AuthManagerResponseDto {
   manager: ManagerResponseDto;
 }
 
-export class ListManagerResponseDto {
+export class ManagerListResponseDto {
   data: ManagerResponseDto[];
-  total: number;
-  page: number;
-  limit: number;
+  pagination: PaginationDto;
 }

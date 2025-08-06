@@ -1,9 +1,9 @@
 import {
   SalonResponseDto,
   SalonListResponseDto,
-  PaginationDto,
 } from "../dto/salon-response.dto";
 
+import { PaginationDto } from "src/common/dtos/pagination.dto";
 // Interface cho data từ Prisma
 interface SalonData {
   id: string;

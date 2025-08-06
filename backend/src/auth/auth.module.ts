@@ -11,6 +11,10 @@ import { EmailService } from "../email/email.service";
 import { ConfigModule } from "@nestjs/config";
 import { PassportModule } from "@nestjs/passport";
 import { JwtStrategy } from "./jwt.strategy";
+import { CustomerModule } from "../customer/customer.module";
+import { UserModule } from "../user/user.module";
+import { StylistModule } from "../stylist/stylist.module";
+import { ManagerModule } from "../manager/manager.module";
 
 @Module({
   imports: [
@@ -21,6 +25,10 @@ import { JwtStrategy } from "./jwt.strategy";
     }),
     PassportModule,
     ConfigModule,
+    CustomerModule,
+    UserModule,
+    StylistModule,
+    ManagerModule,
   ],
   providers: [
     AuthService,

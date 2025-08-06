@@ -7,13 +7,6 @@ export interface StylistResponseDto extends UserResponseDto {
   salonId: string;
 }
 
-export class ListStylistResponseDto {
-  data: StylistResponseDto[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
 export class AuthStylistResponseDto {
   access_token: string;
   stylist: StylistResponseDto;
