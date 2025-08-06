@@ -11,11 +11,7 @@ export const ERROR_MESSAGES = {
   USER: {
     EMAIL_ALREADY_EXISTS: "Email already exists",
     PHONE_ALREADY_EXISTS: "Phone number already exists",
-<<<<<<< HEAD
-    UN_AUTH: "Un",
-=======
-    UN_AUTH: "INVALID_CREDENTIALS"
->>>>>>> 7c2d68d002c078dc12a9f83d18d6cef5945a560f
+    UN_AUTH: "INVALID_CREDENTIALS",
   },
   SALON: {
     NOT_FOUND: "Salon not found",
@@ -23,12 +19,6 @@ export const ERROR_MESSAGES = {
   ROLE: {
     NOT_FOUND: "ROLE NOT FOUND",
   },
-<<<<<<< HEAD
-=======
-  ROLE:{
-    NOT_FOUND: "ROLE NOT FOUND"
-  },
->>>>>>> 7c2d68d002c078dc12a9f83d18d6cef5945a560f
   OTP: {
     INVALID_OR_EXPIRED: "OTP is invalid or expired",
     EMAIL_SEND_FAILED: "Unable to send OTP email",

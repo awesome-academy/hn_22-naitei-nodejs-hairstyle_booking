@@ -8,9 +8,18 @@ import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { UserModule } from "./user/user.module";
 import { SalonModule } from "./salon/salon.module";
+import { StylistModule } from "./stylist/stylist.module";
+import { ServiceModule } from "./service/service.module";
 
 @Module({
-  imports: [PrismaModule, AuthModule, UserModule, SalonModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    UserModule,
+    SalonModule,
+    StylistModule,
+    ServiceModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
