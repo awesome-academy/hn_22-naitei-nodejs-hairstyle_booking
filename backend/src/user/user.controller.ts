@@ -38,31 +38,4 @@ export class UserController {
       Number(limit),
     );
   }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('profile') 
-  async getMyProfile(@CurrentUser() user: JwtPayload): Promise<any> {
-    console.log(user);
-    const userId = user.id;
-    const userProfile = await this.userService.getUserProfile(userId);
-    return userProfile;
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Put('profile') 
-  async updateMyProfile(
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
-    return this.userService.updateUserProfile(user.id, dto);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch('profile/change-password')
-  async changeMyPassword(
-    @CurrentUser() user: JwtPayload, 
-    @Body() dto: ChangePasswordDto,
-  ): Promise<{ message: string }> {
-    return this.userService.changeUserPassword(user.id, dto);
-  }
 }
