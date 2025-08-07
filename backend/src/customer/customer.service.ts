@@ -35,6 +35,10 @@ export class CustomerService {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
 
+    if (!user.customer) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.CUSTOMER_NOT_FOUND);
+    }
+
     const passwordValid = await bcrypt.compare(password, user.password);
     if (!passwordValid) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
@@ -84,7 +88,7 @@ export class CustomerService {
 
     const where = { user: userFilter };
 
-    const [customers, total] = await this.prisma.$transaction([
+    const [customers, total] = await Promise.all([
       this.prisma.customer.findMany({
         where,
         skip,

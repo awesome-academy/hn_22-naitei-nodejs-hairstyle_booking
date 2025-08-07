@@ -196,8 +196,6 @@ export class UserService {
     if (!user.isActive) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
-    const hash = await bcrypt.hash("NewPass@123", 10);
-    console.log(`Hashed password: ${hash}`);
 
     const passwordValid = await bcrypt.compare(password, user.password);
     if (!passwordValid) {
