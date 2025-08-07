@@ -113,7 +113,7 @@ export class AuthService {
       default:
         throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
     }
-
+    
     const payload = {
       id: userResponse.id,
       email: userResponse.email,
@@ -140,6 +140,10 @@ export class AuthService {
 
     const adminUser = await this.userService.validateAdmin(email, password);
 
+    if (!adminUser) {
+      throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
+    }
+      
     const payload = {
       sub: adminUser.id,
       email: adminUser.email,

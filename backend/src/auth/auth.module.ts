@@ -18,6 +18,8 @@ import { ManagerModule } from "../manager/manager.module";
 
 @Module({
   imports: [
+    ConfigModule,
+    PassportModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,

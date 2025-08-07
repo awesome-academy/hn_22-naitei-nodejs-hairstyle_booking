@@ -1,6 +1,9 @@
 import {
   ServiceResponseDto,
   ServiceListResponseDto,
+  ServiceUpdateResponseDto,
+  ServiceCreateResponseDto,
+  ServiceDeleteResponseDto,
 } from "../dto/service-response.dto";
 import { PaginationDto } from "src/common/dtos/pagination.dto";
 interface ServiceData {
@@ -34,5 +37,29 @@ export function buildServiceListResponse(
   return {
     data: services.map(buildServiceResponse),
     pagination,
+  };
+}
+
+export function buildServiceCreateResponse(
+  service: ServiceData,
+): ServiceCreateResponseDto {
+  return {
+    message: "Service created successfully",
+    data: buildServiceResponse(service),
+  };
+}
+
+export function buildServiceUpdateResponse(
+  service: ServiceData,
+): ServiceUpdateResponseDto {
+  return {
+    message: "Service updated successfully",
+    data: buildServiceResponse(service),
+  };
+}
+
+export function buildServiceDeleteResponse(): ServiceDeleteResponseDto {
+  return {
+    message: "Service deleted successfully",
   };
 }
