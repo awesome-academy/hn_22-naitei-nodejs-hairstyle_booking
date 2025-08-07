@@ -19,3 +19,17 @@ export interface ServiceListResponseDto {
   data: ServiceResponseDto[];
   pagination: PaginationDto;
 }
+
+export interface ServiceCreateResponseDto {
+  message: string;
+  data: ServiceResponseDto;
+}
+
+export interface ServiceUpdateResponseDto {
+  message: string;
+  data: ServiceResponseDto;
+}
+
+export interface ServiceDeleteResponseDto {
+  message: string;
+}
