@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CustomerService } from "./customer.service";
 import { CreateCustomerDto } from "./dtos/customer/create-customer.dto";
@@ -36,6 +36,8 @@ import {
   getManagers,
 } from "./utils/list-users.helper";
 import { RoleName } from "../common/enums/role-name.enum";
+import { UpdateUserDto } from "./dtos/user/update-user.dto";
+import { ChangePasswordDto } from "./dtos/user/change-password.dto";
 
 @Injectable()
 export class UserService {
@@ -353,5 +355,91 @@ export class UserService {
     } else {
       throw new ForbiddenException(ERROR_MESSAGES.ROLE.YOU_ARE_NOT_ADMIN);
     }
+  }
+
+  async getUserProfile(userId: string): Promise<any> { 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        role: true,
+        customer: { include: { memberTier: true } },
+        stylist: { include: { salon: true } },
+        manager: { include: { salon: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+    }
+    return user;
+  }
+
+  async updateUserProfile(userId: string, dto: UpdateUserDto): Promise<UserResponseDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+    }
+
+    if (dto.phone && dto.phone !== user.phone) {
+      const existingUserWithPhone = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
+      if (existingUserWithPhone && existingUserWithPhone.id !== userId) {
+        throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
+      }
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        fullName: dto.fullName ?? user.fullName,
+        phone: dto.phone ?? user.phone,
+        address: dto.address ?? user.address,
+        gender: dto.gender ?? user.gender,
+        avatar: dto.avatar ?? user.avatar,
+      },
+      include: { role: true }, 
+    });
+
+    return {
+      id: updatedUser.id,
+      fullName: updatedUser.fullName ?? '',
+      email: updatedUser.email, 
+      phone: updatedUser.phone ?? null,
+      avatar: updatedUser.avatar ?? null,
+      gender: updatedUser.gender ?? null,
+      isActive: updatedUser.isActive,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt,
+      role: {
+        name: updatedUser.role.name,
+        description: updatedUser.role.description ?? undefined,
+      },
+    };
+  }
+
+  async changeUserPassword(userId: string, dto: ChangePasswordDto): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT); 
+    }
+
+    if (dto.newPassword !== dto.confirmNewPassword) {
+      throw new BadRequestException('New password and confirmation do not match.');
+    }
+    if (dto.newPassword === dto.currentPassword) {
+      throw new BadRequestException('New password cannot be the same as the current password.');
+    }
+
+    const hashedPassword = await this.hashPassword(dto.newPassword);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password updated successfully.' };
   }
 }
