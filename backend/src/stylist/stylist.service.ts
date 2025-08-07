@@ -22,7 +22,9 @@ export class StylistService {
       where: { email },
       include: {
         role: true,
-        stylist: true,
+        stylist: {
+          include: { salon: true },
+        },
       },
     });
 
@@ -46,7 +48,10 @@ export class StylistService {
     return buildStylistResponse({
       rating: user.stylist.rating,
       ratingCount: user.stylist.ratingCount,
-      salonId: user.stylist.salonId,
+      salon: {
+        id: user.stylist.salonId,
+        name: user.stylist.salon.name,
+      },
       user: {
         id: user.id,
         fullName: user.fullName,
@@ -114,6 +119,7 @@ export class StylistService {
           salon: {
             select: {
               id: true,
+              name: true,
             },
           },
         },
@@ -184,7 +190,7 @@ export class StylistService {
               role: { select: { name: true } },
             },
           },
-          salon: { select: { id: true } },
+          salon: { select: { id: true, name: true } },
         },
         orderBy: [
           { rating: "desc" },
@@ -217,7 +223,7 @@ export class StylistService {
     });
 
     if (!manager) {
-      throw new Error("Manager not found");
+      throw new Error(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
     }
 
     const { search = "", limit = 20, page = 1 } = query;

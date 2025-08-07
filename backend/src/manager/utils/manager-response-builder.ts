@@ -5,7 +5,10 @@ import {
 import { PaginationDto } from "src/common/dtos/pagination.dto";
 
 interface ManagerData {
-  salonId: string;
+  salon: {
+    id: string;
+    name: string;
+  };
   user: {
     id: string;
     fullName: string | null;
@@ -38,7 +41,10 @@ export function buildManagerResponse(manager: ManagerData): ManagerResponseDto {
       name: manager.user.role.name,
       description: manager.user.role.description ?? undefined,
     },
-    salonId: manager.salonId,
+    salon: {
+      id: manager.salon.id,
+      name: manager.salon.name,
+    },
   };
 }
 

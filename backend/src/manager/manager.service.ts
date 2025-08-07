@@ -43,7 +43,10 @@ export class ManagerService {
     const { manager } = user;
 
     return buildManagerResponse({
-      salonId: manager.salonId,
+      salon: {
+        id: manager.salon.id,
+        name: manager.salon.name,
+      },
       user: {
         id: user.id,
         fullName: user.fullName,
@@ -114,6 +117,7 @@ export class ManagerService {
               role: { select: { name: true } },
             },
           },
+          salon: true,
         },
         orderBy: { createdAt: "desc" },
       }),

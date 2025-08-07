@@ -137,7 +137,10 @@ export class UserService {
       ...user.stylist,
       rating: user.stylist?.rating ?? 0,
       ratingCount: user.stylist?.ratingCount ?? 0,
-      salonId: user.stylist?.salonId ?? "",
+      salon: {
+        id: user.stylist?.salonId ?? "",
+        name: user.stylist?.salon.name ?? "",
+      },
       user,
     });
   }
@@ -172,9 +175,17 @@ export class UserService {
       },
       include: { role: true, manager: { include: { salon: true } } },
     });
+
+    if (!user.manager) {
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
+    }
+
     return buildManagerResponse({
       ...user.manager,
-      salonId: user.manager?.salonId ?? "",
+      salon: {
+        id: user.manager.salonId,
+        name: user.manager.salon.name,
+      },
       user,
     });
   }

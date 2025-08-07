@@ -4,7 +4,10 @@ import { PaginationDto } from "src/common/dtos/pagination.dto";
 export interface StylistResponseDto extends UserResponseDto {
   rating: number;
   ratingCount: number;
-  salonId: string;
+  salon: {
+    id: string;
+    name: string;
+  };
 }
 
 export class AuthStylistResponseDto {
