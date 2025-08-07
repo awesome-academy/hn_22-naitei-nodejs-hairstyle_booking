@@ -1,12 +1,11 @@
 import {
   ServiceResponseDto,
   ServiceListResponseDto,
-  PaginationDto,
   ServiceUpdateResponseDto,
   ServiceCreateResponseDto,
   ServiceDeleteResponseDto,
 } from "../dto/service-response.dto";
-
+import { PaginationDto } from "src/common/dtos/pagination.dto";
 interface ServiceData {
   id: string;
   name: string;

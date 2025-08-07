@@ -2,13 +2,12 @@ import { SUCCESS_MESSAGES } from "src/common/constants/success.constants";
 import {
   SalonResponseDto,
   SalonListResponseDto,
-  PaginationDto,
   SalonCreateResponseDto,
   SalonUpdateResponseDto,
   SalonDeleteResponseDto,
 } from "../dto/salon-response.dto";
 
-// Interface cho data từ Prisma
+import { PaginationDto } from "src/common/dtos/pagination.dto";
 interface SalonData {
   id: string;
   name: string;

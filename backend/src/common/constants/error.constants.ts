@@ -7,6 +7,10 @@ export const ERROR_MESSAGES = {
     NOT_MANAGER_ROLE: "User is not a manager",
     NOT_ADMIN_ROLE: "User is not an admin",
     UNSUPPORTED_ROLE: "Unsupported user role",
+    STYLIST_NOT_FOUND: "Stylist not found",
+    MANAGER_NOT_FOUND: "Manager not found",
+    CUSTOMER_NOT_FOUND: "Customer not found",
+    FORBIDDEN_VIEWER_ROLE: "You do not have permission to view this resource",
   },
   USER: {
     EMAIL_ALREADY_EXISTS: "Email already exists",

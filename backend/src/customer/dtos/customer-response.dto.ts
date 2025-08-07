@@ -1,4 +1,5 @@
-import { UserResponseDto } from "../user/user-response.dto";
+import { UserResponseDto } from "../../user/dtos/user/user-response.dto";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
 
 export class CustomerResponseDto extends UserResponseDto {
   totalCompleted: number;
@@ -13,11 +14,9 @@ export class CustomerResponseDto extends UserResponseDto {
   };
 }
 
-export class ListCustomerResponseDto {
+export class CustomerListResponseDto {
   data: CustomerResponseDto[];
-  total: number;
-  page: number;
-  limit: number;
+  pagination: PaginationDto;
 }
 
 export class AuthCustomerResponseDto {
