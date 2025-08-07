@@ -20,3 +20,16 @@ export interface SalonListResponseDto {
   data: SalonResponseDto[];
   pagination: PaginationDto;
 }
+export interface SalonCreateResponseDto {
+  message: string;
+  data: SalonResponseDto;
+}
+
+export interface SalonUpdateResponseDto {
+  message: string;
+  data: SalonResponseDto;
+}
+
+export interface SalonDeleteResponseDto {
+  message: string;
+}

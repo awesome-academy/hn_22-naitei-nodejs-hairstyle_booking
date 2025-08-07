@@ -14,6 +14,8 @@ import { JwtStrategy } from "./jwt.strategy";
 
 @Module({
   imports: [
+    ConfigModule,
+    PassportModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,

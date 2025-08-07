@@ -12,9 +12,20 @@ export const ERROR_MESSAGES = {
     EMAIL_ALREADY_EXISTS: "Email already exists",
     PHONE_ALREADY_EXISTS: "Phone number already exists",
     UN_AUTH: "INVALID_CREDENTIALS",
+    NOT_FOUND: "User not found",
   },
   SALON: {
     NOT_FOUND: "Salon not found",
+    ALREADY_EXISTS: "Salon with this information already exists",
+    HAS_ACTIVE_BOOKINGS: "Cannot delete salon with active bookings",
+  },
+  SERVICE: {
+    NOT_FOUND: "Service not found",
+    ALREADY_EXISTS: "Service with this name already exists",
+    HAS_ACTIVE_BOOKINGS: "Cannot delete service with active bookings",
+  },
+  STYLIST: {
+    NOT_FOUND: "Stylist not found",
   },
   ROLE: {
     NOT_FOUND: "ROLE NOT FOUND",
