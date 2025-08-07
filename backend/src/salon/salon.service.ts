@@ -20,6 +20,7 @@ import {
 } from "./utils/salon-response-builder";
 import { CreateSalonDto } from "src/salon/dto/create-salon.dto";
 import { UpdateSalonDto } from "src/salon/dto/update-salon.dto";
+import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 
 @Injectable()
 export class SalonService {
@@ -93,9 +94,7 @@ export class SalonService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
-          throw new ConflictException(
-            "Salon with this information already exists",
-          );
+          throw new ConflictException(ERROR_MESSAGES.SALON.ALREADY_EXISTS);
         }
       }
       throw error;
@@ -111,7 +110,7 @@ export class SalonService {
     });
 
     if (!existingSalon) {
-      throw new NotFoundException("Salon not found");
+      throw new NotFoundException(ERROR_MESSAGES.SALON.NOT_FOUND);
     }
 
     try {
@@ -137,9 +136,7 @@ export class SalonService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
-          throw new ConflictException(
-            "Salon with this information already exists",
-          );
+          throw new ConflictException(ERROR_MESSAGES.SALON.ALREADY_EXISTS);
         }
       }
       throw error;
@@ -164,14 +161,11 @@ export class SalonService {
     });
 
     if (!existingSalon) {
-      throw new NotFoundException("Salon not found");
+      throw new NotFoundException(ERROR_MESSAGES.SALON.NOT_FOUND);
     }
 
-    // Chỉ prevent delete nếu có active bookings
     if (existingSalon._count.bookings > 0) {
-      throw new ConflictException(
-        "Cannot delete salon with active bookings. Please complete or cancel all pending bookings first.",
-      );
+      throw new ConflictException(ERROR_MESSAGES.SALON.HAS_ACTIVE_BOOKINGS);
     }
 
     await this.prisma.$transaction(async (prisma) => {
@@ -182,7 +176,6 @@ export class SalonService {
         },
       });
 
-      // Delete salon
       await prisma.salon.delete({
         where: { id },
       });

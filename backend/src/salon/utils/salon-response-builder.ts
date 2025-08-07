@@ -1,3 +1,4 @@
+import { SUCCESS_MESSAGES } from "src/common/constants/success.constants";
 import {
   SalonResponseDto,
   SalonListResponseDto,
@@ -48,7 +49,7 @@ export function buildSalonCreateResponse(
   salon: SalonData,
 ): SalonCreateResponseDto {
   return {
-    message: "Salon created successfully",
+    message: SUCCESS_MESSAGES.SALON.CREATED,
     data: buildSalonResponse(salon),
   };
 }
@@ -57,13 +58,13 @@ export function buildSalonUpdateResponse(
   salon: SalonData,
 ): SalonUpdateResponseDto {
   return {
-    message: "Salon updated successfully",
+    message: SUCCESS_MESSAGES.SALON.UPDATED,
     data: buildSalonResponse(salon),
   };
 }
 
 export function buildSalonDeleteResponse(): SalonDeleteResponseDto {
   return {
-    message: "Salon deleted successfully",
+    message: SUCCESS_MESSAGES.SALON.DELETED,
   };
 }
