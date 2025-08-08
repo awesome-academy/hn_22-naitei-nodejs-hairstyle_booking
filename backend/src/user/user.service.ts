@@ -215,6 +215,87 @@ export class UserService {
     return buildUserResponse(user);
   }
 
+  public async createUserManager(
+    dto: CreateManagerDto,
+  ): Promise<ManagerResponseDto> {
+    const { email, phone, password, salonId, ...rest } = dto;
+    if (await this.prisma.user.findUnique({ where: { email } })) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
+    }
+    if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
+    }
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+    });
+    if (!salon) {
+      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
+    }
+    const hashedPassword = await this.hashPassword(password);
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        phone: phone ?? null,
+        password: hashedPassword,
+        fullName: rest.fullName ?? "",
+        gender: rest.gender ?? null,
+        avatar: rest.avatar ?? null,
+        role: { connect: { name: RoleName.MANAGER } },
+        manager: { create: { salon: { connect: { id: salonId } } } },
+      },
+      include: { role: true, manager: { include: { salon: true } } },
+    });
+    return buildManagerResponse(user, user.manager);
+  }
+
+  public async validateManager(
+    email: string,
+    password: string,
+  ): Promise<ManagerResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { role: true, manager: { include: { salon: true } } },
+    });
+    if (!user) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
+    }
+    if (user.role.name !== RoleName.MANAGER) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_MANAGER_ROLE);
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
+    }
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
+    }
+    return buildManagerResponse(user, user.manager);
+  }
+
+  public async validateAdmin(
+    email: string,
+    password: string,
+  ): Promise<UserResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { role: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
+    }
+    if (user.role.name !== RoleName.ADMIN) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_ADMIN_ROLE);
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
+    }
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
+    }
+    return buildUserResponse(user);
+  }
+
   async findUsersByViewer(
     viewer: JwtPayload,
     role: "CUSTOMER" | "STYLIST" | "MANAGER" | undefined,
