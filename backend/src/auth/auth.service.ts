@@ -9,20 +9,22 @@ import { LoginDto } from "./dtos/login.dto";
 import {
   ManagerResponseDto,
   AuthManagerResponseDto,
-} from "../user/dtos/manager/manager-response.dto";
+} from "../manager/dtos/manager-response.dto";
 import {
   CustomerResponseDto,
   AuthCustomerResponseDto,
-} from "../user/dtos/customer/customer-response.dto";
+} from "../customer/dtos/customer-response.dto";
 import {
   AuthStylistResponseDto,
   StylistResponseDto,
-} from "../user/dtos/stylist/stylist-response.dto";
+} from "../stylist/dto/stylist-response.dto";
 import { UserResponseDto } from "../user/dtos/user/user-response.dto";
 import { UserService } from "../user/user.service";
+import { StylistService } from "../stylist/stylist.service";
+import { CustomerService } from "../customer/customer.service";
+import { ManagerService } from "../manager/manager.service";
 import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 import { PrismaService } from "src/prisma/prisma.service";
-import { buildCustomerResponse } from "../user/utils/response-builder";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
 import {
@@ -43,6 +45,9 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly emailService: EmailService,
     private readonly prisma: PrismaService,
+    private readonly customerService: CustomerService,
+    private readonly stylistService: StylistService,
+    private readonly managerService: ManagerService,
   ) {}
 
   async registerCustomer(dto: RegisterDto): Promise<AuthCustomerResponseDto> {
@@ -88,13 +93,22 @@ export class AuthService {
 
     switch (userRoleName) {
       case RoleName.CUSTOMER:
-        userResponse = await this.userService.validateCustomer(email, password);
+        userResponse = await this.customerService.validateCustomer(
+          email,
+          password,
+        );
         break;
       case RoleName.STYLIST:
-        userResponse = await this.userService.validateStylist(email, password);
+        userResponse = await this.stylistService.validateStylist(
+          email,
+          password,
+        );
         break;
       case RoleName.MANAGER:
-        userResponse = await this.userService.validateManager(email, password);
+        userResponse = await this.managerService.validateManager(
+          email,
+          password,
+        );
         break;
       default:
         throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);

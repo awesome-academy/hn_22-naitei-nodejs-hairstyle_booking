@@ -11,6 +11,8 @@ import { ConfigModule } from "@nestjs/config";
 import { SalonModule } from "./salon/salon.module";
 import { StylistModule } from "./stylist/stylist.module";
 import { ServiceModule } from "./service/service.module";
+import { CustomerModule } from './customer/customer.module';
+import { ManagerModule } from './manager/manager.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { ServiceModule } from "./service/service.module";
     SalonModule,
     StylistModule,
     ServiceModule,
+    CustomerModule,
+    ManagerModule,
   ],
   controllers: [AppController],
   providers: [

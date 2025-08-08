@@ -1,47 +1,43 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CustomerService } from "./customer.service";
-import { CreateCustomerDto } from "./dtos/customer/create-customer.dto";
-import { CreateManagerDto } from "./dtos/manager/create-manager.dto";
-import { CreateStylistDto } from "./dtos/stylist/create-stylist.dto";
-import { ManagerResponseDto } from "./dtos/manager/manager-response.dto";
+import { CreateCustomerDto } from "../customer/dtos/create-customer.dto";
+import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
+import { CreateStylistDto } from "../stylist/dto/create-stylist.dto";
+import { ManagerResponseDto } from "../manager/dtos/manager-response.dto";
 import * as bcrypt from "bcrypt";
-import {
-  buildCustomerResponse,
-  buildStylistResponse,
-  buildManagerResponse,
-  buildUserResponse,
-} from "./utils/response-builder";
+import { buildUserResponse } from "./utils/response-builder";
+import { buildManagerResponse } from "../manager/utils/manager-response-builder";
+import { buildStylistResponse } from "../stylist/utils/stylist-response-builder";
+import { buildCustomerResponse } from "../customer/utils/customer-response-builder";
 import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import {
-  ListCustomerResponseDto,
+  CustomerListResponseDto,
   CustomerResponseDto,
-} from "./dtos/customer/customer-response.dto";
+} from "../customer/dtos/customer-response.dto";
 import {
-  ListStylistResponseDto,
+  StylistListResponseDto,
   StylistResponseDto,
-} from "./dtos/stylist/stylist-response.dto";
+} from "../stylist/dto/stylist-response.dto";
 import {
-  ListUserResponseDto,
+  UserListResponseDto,
   UserResponseDto,
 } from "./dtos/user/user-response.dto";
-import { ListManagerResponseDto } from "./dtos/manager/manager-response.dto";
-import {
-  getAllUsers,
-  getCustomers,
-  getStylists,
-  getManagers,
-} from "./utils/list-users.helper";
+import { ManagerListResponseDto } from "../manager/dtos/manager-response.dto";
 import { RoleName } from "../common/enums/role-name.enum";
+import { CustomerService } from "../customer/customer.service";
+import { StylistService } from "../stylist/stylist.service";
+import { ManagerService } from "../manager/manager.service";
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly customerService: CustomerService,
+    private readonly stylistService: StylistService,
+    private readonly managerService: ManagerService,
   ) {}
 
   private async hashPassword(password: string): Promise<string> {
@@ -82,39 +78,10 @@ export class UserService {
       userId: user.id,
     });
 
-    return buildCustomerResponse(user, customer);
-  }
-
-  async validateCustomer(
-    email: string,
-    password: string,
-  ): Promise<CustomerResponseDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: {
-        role: true,
-        customer: {
-          include: {
-            memberTier: true,
-          },
-        },
-      },
+    return buildCustomerResponse({
+      ...customer,
+      user,
     });
-
-    if (!user) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
-    }
-
-    if (!user.isActive) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
-    }
-
-    const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
-    }
-
-    return buildCustomerResponse(user, user.customer);
   }
 
   async createUserStylist(dto: CreateStylistDto): Promise<StylistResponseDto> {
@@ -166,29 +133,77 @@ export class UserService {
       },
     });
 
-    return buildStylistResponse(user, user.stylist);
+    return buildStylistResponse({
+      ...user.stylist,
+      rating: user.stylist?.rating ?? 0,
+      ratingCount: user.stylist?.ratingCount ?? 0,
+      salon: {
+        id: user.stylist?.salonId ?? "",
+        name: user.stylist?.salon.name ?? "",
+      },
+      user,
+    });
   }
 
-  async validateStylist(
-    email: string,
-    password: string,
-  ): Promise<StylistResponseDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: {
-        role: true,
-        stylist: {
-          include: {
-            salon: true,
-          },
-        },
+  public async createUserManager(
+    dto: CreateManagerDto,
+  ): Promise<ManagerResponseDto> {
+    const { email, phone, password, salonId, ...rest } = dto;
+    if (await this.prisma.user.findUnique({ where: { email } })) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
+    }
+    if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
+    }
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+    });
+    if (!salon) {
+      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
+    }
+    const hashedPassword = await this.hashPassword(password);
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        phone: phone ?? null,
+        password: hashedPassword,
+        fullName: rest.fullName ?? "",
+        gender: rest.gender ?? null,
+        avatar: rest.avatar ?? null,
+        role: { connect: { name: RoleName.MANAGER } },
+        manager: { create: { salon: { connect: { id: salonId } } } },
       },
+      include: { role: true, manager: { include: { salon: true } } },
     });
 
+    if (!user.manager) {
+      throw new BadRequestException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
+    }
+
+    return buildManagerResponse({
+      ...user.manager,
+      salon: {
+        id: user.manager.salonId,
+        name: user.manager.salon.name,
+      },
+      user,
+    });
+  }
+
+  public async validateAdmin(
+    email: string,
+    password: string,
+  ): Promise<UserResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { role: true },
+    });
     if (!user) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
-
+    if (user.role.name !== RoleName.ADMIN) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_ADMIN_ROLE);
+    }
     if (!user.isActive) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
@@ -197,8 +212,7 @@ export class UserService {
     if (!passwordValid) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
     }
-
-    return buildStylistResponse(user, user.stylist);
+    return buildUserResponse(user);
   }
 
   public async createUserManager(
@@ -283,75 +297,96 @@ export class UserService {
   }
 
   async findUsersByViewer(
-    user: JwtPayload,
-    role?: "CUSTOMER" | "STYLIST" | "MANAGER",
+    viewer: JwtPayload,
+    role: "CUSTOMER" | "STYLIST" | "MANAGER" | undefined,
     page = 1,
     limit = 20,
+    search?: string,
   ): Promise<
-    | ListCustomerResponseDto
-    | ListStylistResponseDto
-    | ListManagerResponseDto
-    | ListUserResponseDto
+    | CustomerListResponseDto
+    | StylistListResponseDto
+    | ManagerListResponseDto
+    | UserListResponseDto
   > {
-    const skip = (page - 1) * limit;
-    const viewerRole = user.role;
-
-    if (viewerRole === "ADMIN") {
+    if (viewer.role === "ADMIN") {
       switch (role) {
         case "CUSTOMER":
-          return getCustomers(this.prisma);
+          return this.customerService.getListByAdmin({ page, limit, search });
+
         case "STYLIST":
-          return getStylists(this.prisma);
+          return this.stylistService.getListByAdmin({ page, limit, search });
+
         case "MANAGER":
-          return getManagers(this.prisma);
+          return this.managerService.getListByAdmin({ page, limit, search });
+
         default:
-          return getAllUsers(this.prisma);
+          return this.getList({ page, limit, search });
       }
     }
 
-    if (viewerRole === "MANAGER") {
+    if (viewer.role === "MANAGER") {
       if (!role || role === "STYLIST") {
-        const manager = await this.prisma.manager.findUnique({
-          where: { userId: user.id },
-          select: { salonId: true },
-        });
-
-        if (!manager) throw new Error(ERROR_MESSAGES.MANAGER.NOT_FOUND);
-
-        const [stylists, total] = await Promise.all([
-          this.prisma.stylist.findMany({
-            where: { salonId: manager.salonId },
-            skip,
-            take: limit,
-            include: {
-              user: { include: { role: true } },
-              salon: true,
-            },
-          }),
-          this.prisma.stylist.count({
-            where: { salonId: manager.salonId },
-          }),
-        ]);
-
-        return {
-          data: stylists.map((s) =>
-            buildStylistResponse(s.user, {
-              salonId: s.salon.id,
-              rating: s.rating,
-              ratingCount: s.ratingCount,
-            }),
-          ),
-          total,
-          page,
+        return this.stylistService.getStylistsByManager(viewer.id, {
+          search,
           limit,
-        };
-      } else {
-        throw new ForbiddenException(
-          ERROR_MESSAGES.ROLE.NOT_ALLOWED_FOR_MANAGER,
-        );
+          page,
+        });
       }
-    } else {
-      throw new ForbiddenException(ERROR_MESSAGES.ROLE.YOU_ARE_NOT_ADMIN);
     }
+    throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
+  }
+
+  async getList({
+    page = 1,
+    limit = 10,
+    search,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<UserListResponseDto> {
+    const skip = (page - 1) * limit;
+
+    const where = search
+      ? {
+          OR: [
+            {
+              fullName: {
+                contains: search,
+              },
+            },
+            {
+              email: {
+                contains: search,
+              },
+            },
+          ],
+        }
+      : undefined;
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          role: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    const data = users.map((user) => buildUserResponse(user));
+
+    return {
+      data,
+      pagination: {
+        currentPage: page,
+        itemsPerPage: limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }
