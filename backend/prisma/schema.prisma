@@ -102,7 +102,6 @@ model Customer {
   user           User              @relation(fields: [userId], references: [id])
   memberTier     MemberTier?       @relation(fields: [memberTierId], references: [id])
   bookings       Booking[]
-  bookingHistory BookingComplete[]
   reviews        Review[]
   favorites      StylistFavorite[]
 }
@@ -145,7 +144,6 @@ model Booking {
   services      BookingService[]
   timeslots     BookingTimeslot[]
   review        Review?
-  bookingRecord BookingComplete?
 }
 
 
@@ -208,17 +206,6 @@ model DayOff {
   updatedAt DateTime @updatedAt
 
   stylist Stylist @relation(fields: [stylistId], references: [id])
-}
-
-model BookingComplete {
-  id          String   @id @default(uuid())
-  customerId  String
-  bookingId   String   @unique
-  totalAmount Int
-  createdAt   DateTime @default(now())
-
-  customer Customer @relation(fields: [customerId], references: [id])
-  booking  Booking  @relation(fields: [bookingId], references: [id])
 }
 
 model Review {

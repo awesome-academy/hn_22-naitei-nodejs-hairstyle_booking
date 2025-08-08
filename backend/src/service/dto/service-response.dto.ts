@@ -1,3 +1,5 @@
+import { PaginationDto } from "src/common/dtos/pagination.dto";
+
 export interface ServiceResponseDto {
   id: string;
   name: string;
@@ -6,13 +8,6 @@ export interface ServiceResponseDto {
   duration: number;
   totalBookings: number;
   createdAt: Date;
-}
-
-export interface PaginationDto {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
 }
 
 export interface ServiceListResponseDto {

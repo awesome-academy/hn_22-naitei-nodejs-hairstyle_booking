@@ -4,13 +4,17 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { CustomerService } from "../user/customer.service";
+import { CustomerService } from "../customer/customer.service";
 import { jwtConstants } from "../common/constants/jwt.constants";
 import { OtpService } from "../otp/otp.service";
 import { EmailService } from "../email/email.service";
 import { ConfigModule } from "@nestjs/config";
 import { PassportModule } from "@nestjs/passport";
 import { JwtStrategy } from "./jwt.strategy";
+import { CustomerModule } from "../customer/customer.module";
+import { UserModule } from "../user/user.module";
+import { StylistModule } from "../stylist/stylist.module";
+import { ManagerModule } from "../manager/manager.module";
 
 @Module({
   imports: [
@@ -23,6 +27,10 @@ import { JwtStrategy } from "./jwt.strategy";
     }),
     PassportModule,
     ConfigModule,
+    CustomerModule,
+    UserModule,
+    StylistModule,
+    ManagerModule,
   ],
   providers: [
     AuthService,

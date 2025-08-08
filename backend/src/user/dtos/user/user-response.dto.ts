@@ -1,3 +1,5 @@
+import { PaginationDto } from "../../../common/dtos/pagination.dto";
+
 export class UserResponseDto {
   id: string;
   fullName: string;
@@ -15,9 +17,7 @@ export class UserResponseDto {
   };
 }
 
-export class ListUserResponseDto {
+export class UserListResponseDto {
   data: UserResponseDto[];
-  total: number;
-  page: number;
-  limit: number;
+  pagination: PaginationDto;
 }
