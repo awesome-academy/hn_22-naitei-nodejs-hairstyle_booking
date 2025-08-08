@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import logo from "../../assets/logo-icon.png";
@@ -7,8 +8,9 @@ const Navbar = () => {
   const menuItems = [
     { key: "Home", label: "Home" },
     { key: "AboutUs", label: "About Us" },
-    { key: "Services", label: "Services" },
-    { key: "Stylist", label: "Stylist" },
+    { key: "Services", label: "Services", path: "/services" }, 
+    { key: "Salons", label: "Salons", path: "/salons" },
+    { key: "Stylists", label: "Stylists", path: "/stylists" },
     { key: "Booking", label: "Booking" },
   ];
 
@@ -47,7 +49,7 @@ const Navbar = () => {
         {/* Login Button */}
         <button
           className="bg-white text-pink-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-200"
-          onClick={() => setShowLogin(true)} 
+          onClick={() => setShowLogin(true)}
         >
           Login
         </button>
