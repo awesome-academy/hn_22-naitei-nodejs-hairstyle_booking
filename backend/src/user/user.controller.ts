@@ -24,7 +24,10 @@ export class UserController {
     @Query("page") page = 1,
     @Query("limit") limit = 20,
   ): Promise<
-    CustomerListResponseDto | StylistListResponseDto | ManagerListResponseDto | UserListResponseDto
+    | CustomerListResponseDto
+    | StylistListResponseDto
+    | ManagerListResponseDto
+    | UserListResponseDto
   > {
     return this.userService.findUsersByViewer(
       user,
