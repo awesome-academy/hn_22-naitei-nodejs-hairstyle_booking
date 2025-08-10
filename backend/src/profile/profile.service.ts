@@ -8,6 +8,11 @@ import { ChangePasswordDto } from 'src/user/dtos/user/change-password.dto';
 import { ERROR_MESSAGES } from 'src/common/constants/error.constants';
 import { User } from '@prisma/client';
 import { UserResponseDto } from 'src/user/dtos/user/user-response.dto';
+import { StylistResponseDto } from 'src/user/dtos/stylist/stylist-response.dto';
+import { ManagerResponseDto } from 'src/user/dtos/manager/manager-response.dto';
+import { CustomerResponseDto } from 'src/user/dtos/customer/customer-response.dto';
+import { RoleName } from 'src/common/enums/role-name.enum';
+import { buildCustomerResponse, buildManagerResponse, buildStylistResponse, buildUserResponse } from 'src/user/utils/response-builder';
 
 @Injectable()
 export class ProfileService {
@@ -17,7 +22,9 @@ export class ProfileService {
     return bcrypt.hash(password, 10);
   }
 
-  async getUserProfile(userId: string): Promise<User | null> {
+async getUserProfile(userId: string): Promise<
+    CustomerResponseDto | StylistResponseDto | ManagerResponseDto | UserResponseDto
+  > {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -31,7 +38,17 @@ export class ProfileService {
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
     }
-    return user;
+
+    switch (user.role.name) {
+      case RoleName.CUSTOMER:
+        return buildCustomerResponse(user, user.customer);
+      case RoleName.STYLIST:
+        return buildStylistResponse(user, user.stylist);
+      case RoleName.MANAGER:
+        return buildManagerResponse(user, user.manager);
+      default:
+        return buildUserResponse(user);
+    }
   }
 
   async updateUserProfile(userId: string, dto: UpdateUserDto): Promise<UserResponseDto> {
