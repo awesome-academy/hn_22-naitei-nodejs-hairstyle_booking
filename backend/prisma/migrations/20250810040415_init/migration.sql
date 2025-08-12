@@ -11,12 +11,11 @@ CREATE TABLE `Role` (
 -- CreateTable
 CREATE TABLE `User` (
     `id` VARCHAR(191) NOT NULL,
-    `fullName` VARCHAR(191) NULL,
+    `fullName` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `phone` VARCHAR(191) NULL,
     `avatar` VARCHAR(191) NULL,
-    `address` VARCHAR(191) NULL,
     `isActive` BOOLEAN NOT NULL DEFAULT true,
     `gender` VARCHAR(191) NULL,
     `roleId` VARCHAR(191) NOT NULL,
@@ -115,7 +114,7 @@ CREATE TABLE `Booking` (
     `stylistId` VARCHAR(191) NOT NULL,
     `salonId` VARCHAR(191) NOT NULL,
     `totalPrice` INTEGER NOT NULL,
-    `status` ENUM('PENDING', 'COMPLETED', 'CANCELED') NOT NULL DEFAULT 'PENDING',
+    `status` ENUM('PENDING', 'COMPLETED', 'CANCELED', 'CANCELED_EARLY', 'CANCELED_DAYOFF') NOT NULL DEFAULT 'PENDING',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -149,6 +148,7 @@ CREATE TABLE `WorkSchedule` (
     `id` VARCHAR(191) NOT NULL,
     `stylistId` VARCHAR(191) NOT NULL,
     `workingDate` DATETIME(3) NOT NULL,
+    `isDayOff` BOOLEAN NOT NULL DEFAULT false,
     `morningStartTime` DATETIME(3) NOT NULL,
     `morningEndTime` DATETIME(3) NOT NULL,
     `afternoonStart` DATETIME(3) NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE `TimeSlot` (
     `scheduleId` VARCHAR(191) NOT NULL,
     `startTime` DATETIME(3) NOT NULL,
     `endTime` DATETIME(3) NOT NULL,
-    `isBooked` BOOLEAN NOT NULL,
+    `isBooked` BOOLEAN NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -178,21 +178,10 @@ CREATE TABLE `DayOff` (
     `stylistId` VARCHAR(191) NOT NULL,
     `date` DATETIME(3) NOT NULL,
     `reason` VARCHAR(191) NULL,
+    `status` ENUM('PENDING', 'APPROVED', 'REJECTED', 'CANCELED') NOT NULL DEFAULT 'PENDING',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `BookingComplete` (
-    `id` VARCHAR(191) NOT NULL,
-    `customerId` VARCHAR(191) NOT NULL,
-    `bookingId` VARCHAR(191) NOT NULL,
-    `totalAmount` INTEGER NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    UNIQUE INDEX `BookingComplete_bookingId_key`(`bookingId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -342,12 +331,6 @@ ALTER TABLE `TimeSlot` ADD CONSTRAINT `TimeSlot_scheduleId_fkey` FOREIGN KEY (`s
 
 -- AddForeignKey
 ALTER TABLE `DayOff` ADD CONSTRAINT `DayOff_stylistId_fkey` FOREIGN KEY (`stylistId`) REFERENCES `Stylist`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `BookingComplete` ADD CONSTRAINT `BookingComplete_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `BookingComplete` ADD CONSTRAINT `BookingComplete_bookingId_fkey` FOREIGN KEY (`bookingId`) REFERENCES `Booking`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Review` ADD CONSTRAINT `Review_bookingId_fkey` FOREIGN KEY (`bookingId`) REFERENCES `Booking`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

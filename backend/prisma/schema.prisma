@@ -8,9 +8,18 @@ datasource db {
 }
 
 enum BookingStatus {
-  PENDING
-  COMPLETED
-  CANCELED
+  PENDING          // Đang chờ thực hiện
+  COMPLETED        // Hoàn thành
+  CANCELLED         // Hủy bị phạt, do quá giờ
+  CANCELLED_EARLY //  Hủy chấp nhận được, hủy trước giờ, 
+  CANCELLED_DAYOFF // hủy do dayOff của stylist
+}
+
+enum DayOffStatus {
+  PENDING    
+  APPROVED  
+  REJECTED  
+  CANCELED  
 }
 
 model Role {
@@ -22,12 +31,11 @@ model Role {
 
 model User {
   id        String   @id @default(uuid())
-  fullName  String?
+  fullName  String
   email     String   @unique
   password  String
   phone     String?  @unique
   avatar    String?
-  address   String?
   isActive  Boolean  @default(true)
   gender    String?
   roleId    String
@@ -173,6 +181,7 @@ model WorkSchedule {
   id               String   @id @default(uuid())
   stylistId        String
   workingDate      DateTime
+  isDayOff         Boolean  @default(false)
   morningStartTime DateTime
   morningEndTime   DateTime
   afternoonStart   DateTime
@@ -189,11 +198,11 @@ model TimeSlot {
   scheduleId String
   startTime  DateTime
   endTime    DateTime
-  isBooked   Boolean
+  isBooked   Boolean?  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  schedule         WorkSchedule      @relation(fields: [scheduleId], references: [id])
+  workingSchedule         WorkSchedule      @relation(fields: [scheduleId], references: [id])
   bookingTimeslots BookingTimeslot[]
 }
 
@@ -202,6 +211,8 @@ model DayOff {
   stylistId String
   date      DateTime
   reason    String?
+  status    DayOffStatus @default(PENDING)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
