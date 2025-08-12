@@ -7,6 +7,7 @@ export const ERROR_MESSAGES = {
     NOT_MANAGER_ROLE: "User is not a manager",
     NOT_ADMIN_ROLE: "User is not an admin",
     UNSUPPORTED_ROLE: "Unsupported user role",
+    USER_NOT_FOUND: "User not found",
     STYLIST_NOT_FOUND: "Stylist not found",
     MANAGER_NOT_FOUND: "Manager not found",
     CUSTOMER_NOT_FOUND: "Customer not found",
@@ -27,9 +28,6 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: "Service not found",
     ALREADY_EXISTS: "Service with this name already exists",
     HAS_ACTIVE_BOOKINGS: "Cannot delete service with active bookings",
-  },
-  STYLIST: {
-    NOT_FOUND: "Stylist not found",
   },
   ROLE: {
     NOT_FOUND: "ROLE NOT FOUND",

@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateCustomerDto } from "../customer/dtos/create-customer.dto";
 import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
@@ -84,110 +88,73 @@ export class UserService {
     });
   }
 
-  async createUserStylist(dto: CreateStylistDto): Promise<StylistResponseDto> {
-    const { email, phone, password, salonId, ...rest } = dto;
+  async createUserStylist(dto: CreateStylistDto) {
+    const { email, phone, password, gender, fullName } = dto;
 
     if (await this.prisma.user.findUnique({ where: { email } })) {
       throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
     }
-
     if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
       throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
     }
 
-    const salon = await this.prisma.salon.findUnique({
-      where: { id: salonId },
+    const role = await this.prisma.role.findUnique({
+      where: { name: "STYLIST" },
     });
-    if (!salon) {
-      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
+    if (!role) {
+      throw new NotFoundException(ERROR_MESSAGES.ROLE.NOT_FOUND);
     }
 
-    const hashedPassword = await this.hashPassword(password);
+    const hashedPassword = bcrypt.hashSync(password, 10);
 
     const user = await this.prisma.user.create({
       data: {
         email,
-        phone: phone ?? null,
+        phone,
+        fullName,
+        gender,
+        avatar: dto.avatar ?? null,
         password: hashedPassword,
-        fullName: rest.fullName ?? "",
-        gender: rest.gender ?? null,
-        avatar: rest.avatar ?? null,
-        role: {
-          connect: { name: "STYLIST" },
-        },
-        stylist: {
-          create: {
-            salon: {
-              connect: { id: salonId },
-            },
-          },
-        },
-      },
-      include: {
-        role: true,
-        stylist: {
-          include: {
-            salon: true,
-          },
-        },
+        roleId: role.id,
       },
     });
 
-    return buildStylistResponse({
-      ...user.stylist,
-      rating: user.stylist?.rating ?? 0,
-      ratingCount: user.stylist?.ratingCount ?? 0,
-      salon: {
-        id: user.stylist?.salonId ?? "",
-        name: user.stylist?.salon.name ?? "",
-      },
-      user,
-    });
+    return user;
   }
 
-  public async createUserManager(
-    dto: CreateManagerDto,
-  ): Promise<ManagerResponseDto> {
-    const { email, phone, password, salonId, ...rest } = dto;
+  async createUserManager(dto: CreateManagerDto) {
+    const { email, phone, password, fullName } = dto;
+
     if (await this.prisma.user.findUnique({ where: { email } })) {
       throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
     }
+
     if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
       throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
     }
-    const salon = await this.prisma.salon.findUnique({
-      where: { id: salonId },
+
+    const role = await this.prisma.role.findUnique({
+      where: { name: "MANAGER" },
     });
-    if (!salon) {
-      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
+    if (!role) {
+      throw new NotFoundException(ERROR_MESSAGES.ROLE.NOT_FOUND);
     }
-    const hashedPassword = await this.hashPassword(password);
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
     const user = await this.prisma.user.create({
       data: {
         email,
-        phone: phone ?? null,
+        phone,
+        fullName,
         password: hashedPassword,
-        fullName: rest.fullName ?? "",
-        gender: rest.gender ?? null,
-        avatar: rest.avatar ?? null,
-        role: { connect: { name: RoleName.MANAGER } },
-        manager: { create: { salon: { connect: { id: salonId } } } },
+        gender: dto.gender ?? null,
+        avatar: dto.avatar ?? null,
+        roleId: role.id,
       },
-      include: { role: true, manager: { include: { salon: true } } },
     });
 
-    if (!user.manager) {
-      throw new BadRequestException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
-    }
-
-    return buildManagerResponse({
-      ...user.manager,
-      salon: {
-        id: user.manager.salonId,
-        name: user.manager.salon.name,
-      },
-      user,
-    });
+    return user;
   }
 
   public async validateAdmin(
@@ -239,7 +206,7 @@ export class UserService {
           return this.managerService.getListByAdmin({ page, limit, search });
 
         default:
-          return this.getList({ page, limit, search });
+          return this.getListUsersByAdmin({ page, limit, search });
       }
     }
 
@@ -255,7 +222,7 @@ export class UserService {
     throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
   }
 
-  async getList({
+  async getListUsersByAdmin({
     page = 1,
     limit = 10,
     search,
@@ -265,41 +232,27 @@ export class UserService {
     search?: string;
   }): Promise<UserListResponseDto> {
     const skip = (page - 1) * limit;
-
     const where = search
       ? {
-          OR: [
-            {
-              fullName: {
-                contains: search,
-              },
-            },
-            {
-              email: {
-                contains: search,
-              },
-            },
-          ],
+          OR: ["fullName", "email"].map((field) => ({
+            [field]: { contains: search },
+          })),
         }
       : undefined;
 
-    const [users, total] = await Promise.all([
+    const [users, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
         where,
         skip,
         take: limit,
-        include: {
-          role: true,
-        },
+        include: { role: true },
         orderBy: { createdAt: "desc" },
       }),
       this.prisma.user.count({ where }),
     ]);
 
-    const data = users.map((user) => buildUserResponse(user));
-
     return {
-      data,
+      data: users.map(buildUserResponse),
       pagination: {
         currentPage: page,
         itemsPerPage: limit,

@@ -1,15 +1,62 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { UserService } from "../user/user.service";
+import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { buildManagerResponse } from "./utils/manager-response-builder";
+import { CreateManagerDto } from "./dtos/create-manager.dto";
 import { ManagerResponseDto } from "./dtos/manager-response.dto";
-import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
+import { UnauthorizedException, NotFoundException } from "@nestjs/common";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
 import { RoleName } from "../common/enums/role-name.enum";
 import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class ManagerService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userService: UserService,
+  ) {}
+
+  async createManager(
+    currentUser: JwtPayload,
+    dto: CreateManagerDto,
+  ): Promise<ManagerResponseDto> {
+    const admin = await this.prisma.user.findUnique({
+      where: { id: currentUser.id },
+      include: { role: true },
+    });
+
+    if (!admin || admin.role.name !== RoleName.ADMIN) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_ADMIN_ROLE);
+    }
+
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: dto.salonId },
+    });
+
+    if (!salon) {
+      throw new NotFoundException(ERROR_MESSAGES.SALON.NOT_FOUND);
+    }
+
+    const user = await this.userService.createUserManager(dto);
+
+    if (!user) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_NOT_FOUND);
+    }
+
+    const manager = await this.prisma.manager.create({
+      data: {
+        userId: user.id,
+        salonId: dto.salonId,
+      },
+      include: {
+        user: { include: { role: true } },
+        salon: true,
+      },
+    });
+
+    return buildManagerResponse(manager);
+  }
 
   public async validateManager(
     email: string,
