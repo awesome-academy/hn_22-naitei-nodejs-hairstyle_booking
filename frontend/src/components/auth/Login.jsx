@@ -7,40 +7,72 @@ const Login = ({ onClose }) => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const API_PATH = import.meta.env.VITE_API_PATH;
 
-  const handleLogin = () => {
-    axios.post(`${API_PATH}/Auth/login`, { email, password })
-      .then(res => {
-        const { token, user } = res.data;
-        localStorage.setItem("token", token);
-        localStorage.setItem("userId", user.id);
-        localStorage.setItem("userRole", user.role?.name || user.role);
+  const handleLogin = () => { 
+  axios.post(`${API_PATH}/auth/login/admin`, { email, password })
+    .then(res => {
+      const { access_token, admin } = res.data || {};
+      if (access_token && admin) {
+        localStorage.setItem("token", access_token);
+        localStorage.setItem("userId", admin.id);
+        localStorage.setItem("userRole", admin.role?.name);
+        
+        setSuccess(LOGIN_SUCCESS);
+        setError("");
+        return navigate("/admin-dashboard");
+      }
+      throw new Error("Not admin");
+    })
+    .catch(() => {
+      axios.post(`${API_PATH}/auth/login`, { email, password })
+        .then(res => {
+          const { access_token, customer, stylist, manager } = res.data;
+          localStorage.setItem("token", access_token);
 
-        switch (user.role?.name || user.role) {
-          case "Manager":
-            navigate("/manager-dashboard");
-            break;
-          case "Stylist":
-            navigate("/stylist-dashboard");
-            break;
-          case "Customer":
-            navigate("/customer-dashboard");
-            break;
-          default:
-            setError("Unknown role. Please contact admin.");
-        }
-      })
-      .catch(err => {
-        if (err.response?.data?.message) {
-          setError(err.response.data.message);
-        } else {
-          setError("An unexpected error occurred. Please try again.");
-        }
-      });
+          const userData = customer || stylist || manager;
+          if (!userData) {
+            setError("Unknown response from server");
+            return;
+          }
+
+          localStorage.setItem("userId", userData.id);
+          localStorage.setItem("userRole", userData.role?.name);
+
+          setSuccess(LOGIN_SUCCESS);
+          setError("");
+
+          switch (userData.role?.name) {
+            case "ADMIN":
+              navigate("/admin-dashboard");
+              break;
+            case "MANAGER":
+              navigate("/manager-dashboard");
+              break;
+            case "STYLIST":
+              navigate("/stylist-dashboard");
+              break;
+            case "CUSTOMER":
+              navigate("/customer-dashboard");
+              break;
+            default:
+              setError("Unknown role. Please contact admin.");
+          }
+        })
+        .catch(err => {
+          if (err.response?.data?.message) {
+            setError(err.response.data.message);
+          } else {
+            setError("An unexpected error occurred. Please try again.");
+          }
+          setSuccess("");
+        });
+    });
   };
+
 
   useEffect(() => {
     setIsVisible(true);
