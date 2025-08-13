@@ -1,36 +1,36 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 
-const ServiceFilters = ({ onFiltersChange }) => {
+const StylistFilters = ({ onFiltersChange }) => {
   const [filters, setFilters] = useState({
-    minPrice: "",
-    maxPrice: "",
-    maxDuration: "",
+    minRating: "",
+    salonId: "",
   });
 
   const handleFilterChange = (key, value) => {
-    setFilters((prevFilters) => {
-      const newFilters = { ...prevFilters, [key]: value };
-      const cleanFilters = Object.fromEntries(
-        Object.entries(newFilters).filter(
-          ([, val]) => val !== "" && val !== null && val !== undefined
-        )
-      );
+    console.log(
+      `🔄 Filter changing: ${key} from "${filters[key]}" to "${value}"`
+    );
 
-      console.log("newFilters:", newFilters);
-      console.log("cleanFilters:", cleanFilters);
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
 
-      onFiltersChange(cleanFilters);
-
-      return newFilters;
+    const cleanFilters = {};
+    Object.entries(newFilters).forEach(([filterKey, val]) => {
+      if (val !== "" && val !== null && val !== undefined) {
+        cleanFilters[filterKey] = val;
+      }
     });
+
+    console.log("📤 Sending clean filters to parent:", cleanFilters);
+    onFiltersChange(cleanFilters);
   };
 
   const handleReset = () => {
+    console.log("🧹 Resetting all filters");
     const resetFilters = {
-      minPrice: "",
-      maxPrice: "",
-      maxDuration: "",
+      minRating: "",
+      salonId: "",
     };
     setFilters(resetFilters);
     onFiltersChange({});
@@ -41,40 +41,19 @@ const ServiceFilters = ({ onFiltersChange }) => {
   const getActiveFiltersDisplay = () => {
     const activeFilters = [];
     
-    if (filters.minPrice) {
+    if (filters.minRating) {
       activeFilters.push({
-        label: "Min Price",
-        value: `${parseInt(filters.minPrice).toLocaleString()} VND`,
-        key: "minPrice"
+        label: "Minimum Rating",
+        value: `${filters.minRating}+ Stars`,
+        key: "minRating"
       });
     }
     
-    if (filters.maxPrice) {
+    if (filters.salonId) {
       activeFilters.push({
-        label: "Max Price",
-        value: `${parseInt(filters.maxPrice).toLocaleString()} VND`,
-        key: "maxPrice"
-      });
-    }
-    
-    if (filters.maxDuration) {
-      const duration = parseInt(filters.maxDuration);
-      const hours = Math.floor(duration / 60);
-      const minutes = duration % 60;
-      let durationText = "";
-      
-      if (hours > 0 && minutes > 0) {
-        durationText = `${hours}h ${minutes}m`;
-      } else if (hours > 0) {
-        durationText = `${hours}h`;
-      } else {
-        durationText = `${minutes}m`;
-      }
-      
-      activeFilters.push({
-        label: "Max Duration",
-        value: durationText,
-        key: "maxDuration"
+        label: "Salon",
+        value: filters.salonId,
+        key: "salonId"
       });
     }
     
@@ -92,44 +71,19 @@ const ServiceFilters = ({ onFiltersChange }) => {
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center space-x-2">
           <label className="text-sm font-medium text-gray-700">
-            Price Range:
-          </label>
-          <input
-            type="number"
-            placeholder="Min"
-            value={filters.minPrice}
-            onChange={(e) => handleFilterChange("minPrice", e.target.value)}
-            className="w-24 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-            min="0"
-          />
-          <span className="text-gray-500">-</span>
-          <input
-            type="number"
-            placeholder="Max"
-            value={filters.maxPrice}
-            onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
-            className="w-24 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-            min="0"
-          />
-          <span className="text-xs text-gray-500 ml-1">VND</span>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium text-gray-700">
-            Max Duration:
+            Minimum Rating:
           </label>
           <select
-            value={filters.maxDuration}
-            onChange={(e) => handleFilterChange("maxDuration", e.target.value)}
+            value={filters.minRating}
+            onChange={(e) => handleFilterChange("minRating", e.target.value)}
             className="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
           >
-            <option value="">Any</option>
-            <option value="30">30 minutes</option>
-            <option value="60">1 hour</option>
-            <option value="90">1.5 hours</option>
-            <option value="120">2 hours</option>
-            <option value="180">3 hours</option>
-            <option value="240">4 hours</option>
+            <option value="">Any Rating</option>
+            <option value="1">1+ Stars</option>
+            <option value="2">2+ Stars</option>
+            <option value="3">3+ Stars</option>
+            <option value="4">4+ Stars</option>
+            <option value="4.5">4.5+ Stars</option>
           </select>
         </div>
 
@@ -195,7 +149,7 @@ const ServiceFilters = ({ onFiltersChange }) => {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-sm italic">No filters applied - showing all services</span>
+            <span className="text-sm italic">No filters applied - showing all stylists</span>
           </div>
         </div>
       )}
@@ -203,8 +157,8 @@ const ServiceFilters = ({ onFiltersChange }) => {
   );
 };
 
-ServiceFilters.propTypes = {
+StylistFilters.propTypes = {
   onFiltersChange: PropTypes.func.isRequired,
 };
 
-export default ServiceFilters;
+export default StylistFilters;
