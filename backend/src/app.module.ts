@@ -13,6 +13,7 @@ import { StylistModule } from "./stylist/stylist.module";
 import { ServiceModule } from "./service/service.module";
 import { CustomerModule } from './customer/customer.module';
 import { ManagerModule } from './manager/manager.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ManagerModule } from './manager/manager.module';
     ServiceModule,
     CustomerModule,
     ManagerModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [
