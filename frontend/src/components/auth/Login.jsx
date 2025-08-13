@@ -11,68 +11,72 @@ const Login = ({ onClose }) => {
 
   const [isVisible, setIsVisible] = useState(false);
   const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const API_PATH = import.meta.env.VITE_API_PATH;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (error) {
-      setError("");
-    }
-  };
-
-  const validateForm = () => {
-    if (!formData.email.trim()) {
-      setError("Email is required");
-      return false;
-    }
-    if (!formData.password.trim()) {
-      setError("Password is required");
-      return false;
-    }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-    return true;
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm() || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setError("");
-
-    try {
-      const result = await login(formData);
-      console.log(result);
-      if (result.success) {
-        updateAuthState(result.user);
-        handleClose();
-        setTimeout(() => {
-          navigate(result.navigationPath);
-          window.location.reload();
-        }, 300);
-      } else {
-        setError(result.error);
+  const handleLogin = () => { 
+  axios.post(`${API_PATH}/auth/login/admin`, { email, password })
+    .then(res => {
+      const { access_token, admin } = res.data || {};
+      if (access_token && admin) {
+        localStorage.setItem("token", access_token);
+        localStorage.setItem("userId", admin.id);
+        localStorage.setItem("userRole", admin.role?.name);
+        
+        setSuccess(LOGIN_SUCCESS);
+        setError("");
+        return navigate("/admin-dashboard");
       }
-    } catch (err) {
-      console.error("Unexpected login error:", err);
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+      throw new Error("Not admin");
+    })
+    .catch(() => {
+      axios.post(`${API_PATH}/auth/login`, { email, password })
+        .then(res => {
+          const { access_token, customer, stylist, manager } = res.data;
+          localStorage.setItem("token", access_token);
+
+          const userData = customer || stylist || manager;
+          if (!userData) {
+            setError("Unknown response from server");
+            return;
+          }
+
+          localStorage.setItem("userId", userData.id);
+          localStorage.setItem("userRole", userData.role?.name);
+
+          setSuccess(LOGIN_SUCCESS);
+          setError("");
+
+          switch (userData.role?.name) {
+            case "ADMIN":
+              navigate("/admin-dashboard");
+              break;
+            case "MANAGER":
+              navigate("/manager-dashboard");
+              break;
+            case "STYLIST":
+              navigate("/stylist-dashboard");
+              break;
+            case "CUSTOMER":
+              navigate("/customer-dashboard");
+              break;
+            default:
+              setError("Unknown role. Please contact admin.");
+          }
+        })
+        .catch(err => {
+          if (err.response?.data?.message) {
+            setError(err.response.data.message);
+          } else {
+            setError("An unexpected error occurred. Please try again.");
+          }
+          setSuccess("");
+        });
+    });
   };
+
 
   useEffect(() => {
     setIsVisible(true);
