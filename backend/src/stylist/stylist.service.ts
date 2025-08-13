@@ -1,18 +1,60 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { UserService } from "../user/user.service";
 import { Prisma } from "@prisma/client";
+import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { GetStylistsQueryDto } from "./dto/get-stylists-query.dto";
+import { CreateStylistDto } from "./dto/create-stylist.dto";
 import { StylistListResponseDto } from "./dto/stylist-response.dto";
 import { buildStylistResponse } from "./utils/stylist-response-builder";
 import { buildStylistListResponse } from "./utils/stylist-response-builder";
 import { StylistResponseDto } from "./dto/stylist-response.dto";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
-import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
+import {
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class StylistService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userService: UserService,
+  ) {}
+  async createStylist(
+    currentUser: JwtPayload,
+    dto: CreateStylistDto,
+  ): Promise<StylistResponseDto> {
+    const manager = await this.prisma.manager.findUnique({
+      where: { userId: currentUser.id },
+      select: { salonId: true },
+    });
+
+    if (!manager) {
+      throw new ForbiddenException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
+    }
+
+    const user = await this.userService.createUserStylist(dto);
+
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.AUTH.USER_NOT_FOUND);
+    }
+
+    const stylist = await this.prisma.stylist.create({
+      data: {
+        userId: user.id,
+        salonId: manager.salonId,
+      },
+      include: {
+        user: { include: { role: true } },
+        salon: true,
+      },
+    });
+
+    return buildStylistResponse(stylist);
+  }
 
   async validateStylist(
     email: string,
