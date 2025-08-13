@@ -1,4 +1,13 @@
-import { Controller, Get, UseGuards, Query, Post, Body } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Query,
+  Post,
+  Patch,
+  Body,
+  Param,
+} from "@nestjs/common";
 import { UserService } from "./user.service";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../common/guards/roles.guard";
@@ -19,6 +28,10 @@ import {
 import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
 import { ManagerService } from "../manager/manager.service";
 import { UserListResponseDto } from "./dtos/user/user-response.dto";
+import {
+  UpdateUserStatusDto,
+  UpdateUserStatusResponseDto,
+} from "./dtos/user/update-user-status.dto";
 
 @Controller("users")
 export class UserController {
@@ -53,7 +66,7 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("ADMIN", "MANAGER")
+  @Roles("ADMIN")
   @Post("manager")
   createManager(
     @CurrentUser() user: JwtPayload,
@@ -63,12 +76,21 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("ADMIN", "MANAGER")
+  @Roles("MANAGER")
   @Post("stylist")
   createStylist(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreateStylistDto,
   ): Promise<StylistResponseDto> {
     return this.stylistService.createStylist(user, dto);
+  }
+
+  @Patch(":id/status")
+  async updateStatus(
+    @CurrentUser() currentUser: JwtPayload,
+    @Param("id") targetUserId: string,
+    @Body() dto: UpdateUserStatusDto,
+  ): Promise<UpdateUserStatusResponseDto> {
+    return this.userService.updateUserStatus(currentUser, targetUserId, dto);
   }
 }

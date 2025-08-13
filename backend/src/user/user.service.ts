@@ -7,11 +7,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CreateCustomerDto } from "../customer/dtos/create-customer.dto";
 import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
 import { CreateStylistDto } from "../stylist/dto/create-stylist.dto";
-import { ManagerResponseDto } from "../manager/dtos/manager-response.dto";
 import * as bcrypt from "bcrypt";
 import { buildUserResponse } from "./utils/response-builder";
-import { buildManagerResponse } from "../manager/utils/manager-response-builder";
-import { buildStylistResponse } from "../stylist/utils/stylist-response-builder";
 import { buildCustomerResponse } from "../customer/utils/customer-response-builder";
 import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
@@ -34,6 +31,10 @@ import { RoleName } from "../common/enums/role-name.enum";
 import { CustomerService } from "../customer/customer.service";
 import { StylistService } from "../stylist/stylist.service";
 import { ManagerService } from "../manager/manager.service";
+import {
+  UpdateUserStatusDto,
+  UpdateUserStatusResponseDto,
+} from "./dtos/user/update-user-status.dto";
 
 @Injectable()
 export class UserService {
@@ -222,7 +223,69 @@ export class UserService {
     throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
   }
 
-  async getListUsersByAdmin({
+  async updateUserStatus(
+    currentUser: JwtPayload,
+    targetUserId: string,
+    dto: UpdateUserStatusDto,
+  ): Promise<UpdateUserStatusResponseDto> {
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, fullName: true, isActive: true },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (currentUser.role === "ADMIN") {
+      return this.applyStatusChange(targetUserId, dto.isActive);
+    }
+
+    if (currentUser.role === "MANAGER") {
+      const manager = await this.prisma.manager.findUnique({
+        where: { userId: currentUser.id },
+        select: { salonId: true },
+      });
+
+      if (!manager) {
+        throw new ForbiddenException("Manager profile not found");
+      }
+
+      const stylist = await this.prisma.stylist.findFirst({
+        where: {
+          userId: targetUserId,
+          salonId: manager.salonId,
+        },
+        select: { id: true },
+      });
+
+      if (!stylist) {
+        throw new ForbiddenException(
+          "You can only update stylists in your salon",
+        );
+      }
+
+      return this.applyStatusChange(targetUserId, dto.isActive);
+    }
+
+    throw new ForbiddenException("You do not have permission");
+  }
+
+  private async applyStatusChange(userId: string, isActive: boolean) {
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive },
+      select: { id: true, fullName: true, isActive: true },
+    });
+
+    return {
+      userId: updated.id,
+      fullName: updated.fullName,
+      isActive: updated.isActive,
+    };
+  }
+
+  private async getListUsersByAdmin({
     page = 1,
     limit = 10,
     search,
