@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { salonApi } from "../api/services/salonApi";
+import { stylistApi } from "../api/services/stylistApi";
 
-export const useSalons = () => {
-  const [salons, setSalons] = useState([]);
+export const useStylists = () => {
+  const [stylists, setStylists] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -12,7 +12,7 @@ export const useSalons = () => {
     itemsPerPage: 10,
   });
 
-  const fetchSalons = useCallback(async (params = {}) => {
+  const fetchStylists = useCallback(async (params = {}) => {
     try {
       setLoading(true);
       setError(null);
@@ -21,9 +21,10 @@ export const useSalons = () => {
 
       Object.entries(params).forEach(([key, value]) => {
         if (value !== "" && value !== null && value !== undefined) {
-          if (["page", "limit"].includes(key)) {
+          // Convert number strings to actual numbers for API
+          if (["minRating", "page", "limit"].includes(key)) {
             const numValue = Number(value);
-            if (!isNaN(numValue) && numValue > 0) {
+            if (!isNaN(numValue) && numValue >= 0) {
               cleanParams[key] = numValue;
             }
           } else {
@@ -32,14 +33,14 @@ export const useSalons = () => {
         }
       });
 
-      console.log("Sending clean params to salon API:", cleanParams);
+      console.log("Sending clean params to stylist API:", cleanParams);
 
-      const response = await salonApi.getSalons(cleanParams);
-      console.log("Salons API response:", response.data);
+      const response = await stylistApi.getStylists(cleanParams);
+      console.log("Stylists API response:", response.data);
 
       const { data, pagination: paginationData } = response.data;
 
-      setSalons(data || []);
+      setStylists(data || []);
       setPagination(
         paginationData || {
           currentPage: 1,
@@ -49,13 +50,13 @@ export const useSalons = () => {
         }
       );
     } catch (err) {
-      console.error("Error fetching salons:", err);
+      console.error("Error fetching stylists:", err);
       console.error("Error response:", err.response?.data);
 
       setError(
-        err.response?.data?.message || err.message || "Failed to fetch salons"
+        err.response?.data?.message || err.message || "Failed to fetch stylists"
       );
-      setSalons([]);
+      setStylists([]);
       setPagination({
         currentPage: 1,
         totalPages: 1,
@@ -67,80 +68,80 @@ export const useSalons = () => {
     }
   }, []);
 
-  const createSalon = useCallback(async (salonData) => {
+  const createStylist = useCallback(async (stylistData) => {
     try {
-      const response = await salonApi.createSalon(salonData);
+      const response = await stylistApi.createStylist(stylistData);
       return { success: true, data: response.data };
     } catch (err) {
       return {
         success: false,
-        error: err.response?.data?.message || "Failed to create salon",
+        error: err.response?.data?.message || "Failed to create stylist",
       };
     }
   }, []);
 
-  const updateSalon = useCallback(async (id, salonData) => {
+  const updateStylist = useCallback(async (id, stylistData) => {
     try {
-      const response = await salonApi.updateSalon(id, salonData);
+      const response = await stylistApi.updateStylist(id, stylistData);
       return { success: true, data: response.data };
     } catch (err) {
       return {
         success: false,
-        error: err.response?.data?.message || "Failed to update salon",
+        error: err.response?.data?.message || "Failed to update stylist",
       };
     }
   }, []);
 
-  const deleteSalon = useCallback(async (id) => {
+  const deleteStylist = useCallback(async (id) => {
     try {
-      await salonApi.deleteSalon(id);
+      await stylistApi.deleteStylist(id);
       return { success: true };
     } catch (err) {
       return {
         success: false,
-        error: err.response?.data?.message || "Failed to delete salon",
+        error: err.response?.data?.message || "Failed to delete stylist",
       };
     }
   }, []);
 
   return {
-    salons,
+    stylists,
     loading,
     error,
     pagination,
-    fetchSalons,
-    createSalon,
-    updateSalon,
-    deleteSalon,
-    refetch: fetchSalons,
+    fetchStylists,
+    createStylist,
+    updateStylist,
+    deleteStylist,
+    refetch: fetchStylists,
   };
 };
 
-export const useSalonDetail = (id) => {
-  const [salon, setSalon] = useState(null);
+export const useStylistDetail = (id) => {
+  const [stylist, setStylist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchSalon = useCallback(async () => {
+  const fetchStylist = useCallback(async () => {
     if (!id) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      const response = await salonApi.getSalonById(id);
-      setSalon(response.data);
+      const response = await stylistApi.getStylistById(id);
+      setStylist(response.data);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch salon");
-      console.error("Error fetching salon:", err);
+      setError(err.response?.data?.message || "Failed to fetch stylist");
+      console.error("Error fetching stylist:", err);
     } finally {
       setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
-    fetchSalon();
-  }, [fetchSalon]);
+    fetchStylist();
+  }, [fetchStylist]);
 
-  return { salon, loading, error };
+  return { stylist, loading, error };
 };
