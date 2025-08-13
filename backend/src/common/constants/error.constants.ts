@@ -48,9 +48,13 @@ export const ERROR_MESSAGES = {
   CUSTOMER: {
     NOT_FOUND: "Customer not found",
   },
-    FAVORITE: {
-    STYLIST_NOT_FOUND: "Stylist not found.",
-    ALREADY_FAVORITED: "Stylist is already in your favorites.",
-    NOT_FAVORITED: "Stylist is not in your favorites.",
+   NOTIFICATION: {
+    NOT_FOUND: "Notification not found.",
+    NOT_OWNER: "You do not have permission to access this notification.",
+  },
+  DAY_OFF: {
+    NOT_FOUND: "Day off request not found.",
+    NOT_OWNER: "You do not have permission to access this day off request.",
+    NOT_STYLIST: "Only stylists can manage day off requests.",
   },
 };
