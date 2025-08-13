@@ -1,23 +1,24 @@
 import React, { useState, useCallback, useEffect } from "react";
 import NavBar from "../components/home/Navbar";
 import Footer from "../components/home/Footer";
-import SalonCard from "../components/salon/SalonCard";
+import StylistCard from "../components/stylist/StylistCard";
 import SearchBar from "../components/common/SearchBar";
+import StylistFilters from "../components/stylist/StylistFilters";
 import Pagination from "../components/common/Pagination";
-import { useSalons } from "../hooks/useSalons";
+import { useStylists } from "../hooks/useStylists";
 
-const Salons = () => {
+const Stylists = () => {
   const [filters, setFilters] = useState({
     search: "",
     page: 1,
     limit: 12,
   });
 
-  const { salons, loading, error, pagination, fetchSalons } = useSalons();
+  const { stylists, loading, error, pagination, fetchStylists } = useStylists();
 
   useEffect(() => {
-    fetchSalons(filters);
-  }, []); 
+    fetchStylists(filters);
+  }, []);
 
   const [isInitialRender, setIsInitialRender] = useState(true);
 
@@ -27,7 +28,7 @@ const Salons = () => {
       return;
     }
 
-    fetchSalons(filters);
+    fetchStylists(filters);
   }, [filters]);
 
   const handleSearch = useCallback((searchTerm) => {
@@ -38,13 +39,25 @@ const Salons = () => {
     }));
   }, []);
 
+  const handleFiltersChange = useCallback((newFilters) => {
+    setFilters((prev) => ({
+      ...prev,
+      ...newFilters,
+      page: 1,
+    }));
+  }, []);
+
   const handlePageChange = useCallback((page) => {
     setFilters((prev) => ({ ...prev, page }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const handleViewSalon = useCallback((salon) => {
-    console.log("Viewing salon:", salon);
+  const handleViewStylist = useCallback((stylist) => {
+    console.log("Viewing stylist:", stylist);
+  }, []);
+
+  const handleBookStylist = useCallback((stylist) => {
+    console.log("Booking stylist:", stylist);
   }, []);
 
   return (
@@ -54,11 +67,11 @@ const Salons = () => {
       <section className="bg-gradient-to-r from-pink-500 to-purple-600 text-white py-16">
         <div className="container mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Find Your Perfect Salon
+            Find Your Perfect Stylist
           </h1>
           <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Discover the best hair salons in your area with professional
-            stylists and premium services
+            Connect with talented hair stylists who will help you achieve your
+            dream look
           </p>
         </div>
       </section>
@@ -67,17 +80,18 @@ const Salons = () => {
         <div className="container mx-auto px-6">
           <SearchBar
             onSearch={handleSearch}
-            placeholder="Search salons by name or address..."
+            placeholder="Search stylists by name..."
           />
+
+          <StylistFilters onFiltersChange={handleFiltersChange} />
 
           <div className="mt-4 text-gray-600">
             {filters.search ? (
               <p>
-                Found {pagination.totalItems} salons for &quot;{filters.search}
-                &quot;
+                Found {pagination.totalItems} stylists for &quot;{filters.search}&quot;
               </p>
             ) : (
-              <p>Showing {pagination.totalItems} salons</p>
+              <p>Showing {pagination.totalItems} stylists</p>
             )}
           </div>
         </div>
@@ -88,7 +102,7 @@ const Salons = () => {
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
-              <p className="mt-4 text-gray-600">Loading salons...</p>
+              <p className="mt-4 text-gray-600">Loading stylists...</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
@@ -109,13 +123,13 @@ const Salons = () => {
               </div>
               <p className="text-gray-600">{error}</p>
               <button
-                onClick={() => fetchSalons(filters)}
+                onClick={() => fetchStylists(filters)}
                 className="mt-4 bg-pink-500 text-white px-6 py-2 rounded-lg hover:bg-pink-600 transition"
               >
                 Try Again
               </button>
             </div>
-          ) : salons.length === 0 ? (
+          ) : stylists.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 mb-4">
                 <svg
@@ -128,11 +142,11 @@ const Salons = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m5 0v-5a2 2 0 00-2-2H8a2 2 0 00-2 2v5m5 0v-5a2 2 0 012-2h2a2 2 0 012 2v5"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                   />
                 </svg>
               </div>
-              <p className="text-gray-600">No salons found</p>
+              <p className="text-gray-600">No stylists found</p>
               {filters.search && (
                 <button
                   onClick={() => handleSearch("")}
@@ -145,11 +159,12 @@ const Salons = () => {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {salons.map((salon) => (
-                  <SalonCard
-                    key={salon.id}
-                    salon={salon}
-                    onViewSalon={handleViewSalon}
+                {stylists.map((stylist) => (
+                  <StylistCard
+                    key={stylist.id}
+                    stylist={stylist}
+                    onViewStylist={handleViewStylist}
+                    onBookStylist={handleBookStylist}
                   />
                 ))}
               </div>
@@ -173,4 +188,4 @@ const Salons = () => {
   );
 };
 
-export default Salons;
+export default Stylists;
