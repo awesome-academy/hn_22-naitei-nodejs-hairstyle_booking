@@ -2,6 +2,8 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateCustomerDto } from "../customer/dtos/create-customer.dto";
@@ -41,7 +43,9 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly customerService: CustomerService,
+    @Inject(forwardRef(() => StylistService))
     private readonly stylistService: StylistService,
+    @Inject(forwardRef(() => ManagerService))
     private readonly managerService: ManagerService,
   ) {}
 
@@ -278,7 +282,7 @@ export class UserService {
 
     return {
       userId: updated.id,
-      fullName: updated.fullName,
+      fullName: updated.fullName || "",
       isActive: updated.isActive,
     };
   }

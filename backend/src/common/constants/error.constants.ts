@@ -47,4 +47,9 @@ export const ERROR_MESSAGES = {
   CUSTOMER: {
     NOT_FOUND: "Customer not found",
   },
+  STYLIST: {
+    NOT_FOUND: "Stylist not found",
+    SALON_NOT_ASSIGNED: "Stylist is not assigned to any salon",
+    ALREADY_EXISTS: "Stylist already exists",
+  },
 };
