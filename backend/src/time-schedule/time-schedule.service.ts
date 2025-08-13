@@ -3,10 +3,10 @@ import { PrismaService } from "../prisma/prisma.service";
 import { addDays, startOfDay, endOfDay } from "date-fns";
 
 @Injectable()
-export class ScheduleService {
+export class TimeScheduleService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getSchedulesOfStylist(stylistId: string) {
+  async getTimeSchedulesOfStylist(stylistId: string) {
     if (!stylistId) {
       throw new BadRequestException("stylistId is required");
     }

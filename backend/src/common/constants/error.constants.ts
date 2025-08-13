@@ -28,9 +28,6 @@ export const ERROR_MESSAGES = {
     ALREADY_EXISTS: "Service with this name already exists",
     HAS_ACTIVE_BOOKINGS: "Cannot delete service with active bookings",
   },
-  STYLIST: {
-    NOT_FOUND: "Stylist not found",
-  },
   ROLE: {
     NOT_FOUND: "ROLE NOT FOUND",
     NOT_ALLOWED_FOR_MANAGER: "Role not allowed for manager",

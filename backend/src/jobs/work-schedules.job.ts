@@ -22,14 +22,11 @@ export class WorkSchedulesJob {
   async handleGenerateWorkSchedules() {
     this.logger.log("Running work schedule generation job...");
 
-    // Lấy danh sách stylist
     const stylists = await this.prisma.stylist.findMany();
 
-    // Ngày target = hôm nay + 6 (đảm bảo luôn có 7 ngày sẵn)
     const targetDate = addDays(new Date(), 6);
 
     for (const stylist of stylists) {
-      // Kiểm tra stylist có đơn nghỉ approved ngày target không
       const dayOff = await this.prisma.dayOff.findFirst({
         where: {
           stylistId: stylist.id,
