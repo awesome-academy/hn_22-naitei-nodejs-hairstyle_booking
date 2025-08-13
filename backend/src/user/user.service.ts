@@ -234,7 +234,7 @@ export class UserService {
     });
 
     if (!targetUser) {
-      throw new NotFoundException("User not found");
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
     }
 
     if (currentUser.role === "ADMIN") {
@@ -248,7 +248,7 @@ export class UserService {
       });
 
       if (!manager) {
-        throw new ForbiddenException("Manager profile not found");
+        throw new ForbiddenException(ERROR_MESSAGES.MANAGER.NOT_FOUND);
       }
 
       const stylist = await this.prisma.stylist.findFirst({
@@ -260,15 +260,13 @@ export class UserService {
       });
 
       if (!stylist) {
-        throw new ForbiddenException(
-          "You can only update stylists in your salon",
-        );
+        throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
       }
 
       return this.applyStatusChange(targetUserId, dto.isActive);
     }
 
-    throw new ForbiddenException("You do not have permission");
+    throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
   }
 
   private async applyStatusChange(userId: string, isActive: boolean) {
