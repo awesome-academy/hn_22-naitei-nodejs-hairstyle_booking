@@ -69,7 +69,7 @@ export const useServices = (initialParams = {}) => {
   const createService = async (serviceData) => {
     try {
       const response = await serviceApi.createService(serviceData);
-      await fetchServices(); // Refresh list
+      await fetchServices();
       return { success: true, data: response.data };
     } catch (err) {
       return {
@@ -82,7 +82,7 @@ export const useServices = (initialParams = {}) => {
   const updateService = async (id, serviceData) => {
     try {
       const response = await serviceApi.updateService(id, serviceData);
-      await fetchServices(); // Refresh list
+      await fetchServices();
       return { success: true, data: response.data };
     } catch (err) {
       return {
@@ -95,7 +95,7 @@ export const useServices = (initialParams = {}) => {
   const deleteService = async (id) => {
     try {
       await serviceApi.deleteService(id);
-      await fetchServices(); // Refresh list
+      await fetchServices();
       return { success: true };
     } catch (err) {
       return {
