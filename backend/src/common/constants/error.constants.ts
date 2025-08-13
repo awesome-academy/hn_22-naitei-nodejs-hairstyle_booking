@@ -46,9 +46,6 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: "Manager not found",
     SALON_NOT_FOUND: "Salon not found for the manager",
   },
-  STYLIST: {
-    NOT_FOUND: "Stylist not found",
-  },
   CUSTOMER: {
     NOT_FOUND: "Customer not found",
   },
