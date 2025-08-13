@@ -28,9 +28,4 @@ export class FavoriteController {
   ): Promise<{ message: string }> {
     return this.favoriteService.removeFavoriteStylist(user.id, stylistId);
   }
-
-  @Get()
-  async getFavoriteStylists(@CurrentUser() user: JwtPayload): Promise<any[]> {
-    return this.favoriteService.getFavoriteStylists(user.id);
-  }
 }
