@@ -10,7 +10,10 @@ import {
 import { NotFoundException, ForbiddenException } from "@nestjs/common";
 import { buildBookingResponse } from "./utils/build-booking-response";
 import { getCancelStatus } from "./utils/get-cancel-status";
-import { handleCancelledBooking } from "./utils/handle-cancelled-booking";
+import {
+  customerUpdateStatusBooking,
+  stylistUpdateStatusBooking,
+} from "./utils/update-status-booking";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { RoleName } from "../common/enums/role-name.enum";
 import { BookingStatus } from "../common/enums/booking-status.enum";
@@ -276,7 +279,7 @@ export class BookingService {
 
     // CUSTOMER hủy booking
     if (user.role === "CUSTOMER") {
-      if (booking.customerId !== user.id) {
+      if (booking.customer.userId !== user.id) {
         throw new ForbiddenException("Not your booking");
       }
       if (booking.status !== BookingStatus.PENDING) {
@@ -290,19 +293,13 @@ export class BookingService {
 
       const newStatus = getCancelStatus(firstSlot.startTime, 3);
 
-      await this.prisma.booking.update({
-        where: { id },
-        data: { status: newStatus },
-      });
-
-      // Nếu cần trừ điểm cho CANCEL_PENALTY
-      if (newStatus === BookingStatus.CANCELLED) {
-        await handleCancelledBooking(booking.customerId);
-      }
-
-      return { message: `Booking cancelled (${newStatus})` };
+      return customerUpdateStatusBooking(
+        booking.id,
+        booking.customerId,
+        booking.customer.userId,
+        newStatus,
+      );
     }
-
     // STYLIST cập nhật completed hoặc cancelled
     if (user.role === "STYLIST") {
       if (booking.stylist.userId !== user.id) {
@@ -313,19 +310,20 @@ export class BookingService {
       ) {
         throw new BadRequestException("Invalid status for stylist");
       }
-
-      await this.prisma.booking.update({
-        where: { id },
-        data: { status: dto.status },
-      });
-
-      if (dto.status === BookingStatus.COMPLETED) {
-        await this.handleRewardForStylist(booking.stylistId);
+      const firstSlot = booking.timeslots[0]?.timeSlot;
+      if (!firstSlot) {
+        throw new BadRequestException("Booking has no timeslot");
       }
 
-      return { message: `Booking updated to ${dto.status}` };
-    }
+      const newStatus = getCancelStatus(firstSlot.startTime, 3);
 
+      return stylistUpdateStatusBooking(
+        booking.id,
+        booking.customerId,
+        booking.customer.userId,
+        newStatus,
+      );
+    }
     throw new ForbiddenException("Role not allowed to update booking status");
   }
 }

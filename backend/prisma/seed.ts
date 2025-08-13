@@ -24,7 +24,6 @@ async function main() {
     });
   }
 
-  // 2. Bootstrap work schedules cho stylist
   const stylists = await prisma.stylist.findMany();
   if (!stylists.length) {
     console.log("⚠️ Không có stylist nào trong hệ thống, bỏ qua tạo lịch.");
