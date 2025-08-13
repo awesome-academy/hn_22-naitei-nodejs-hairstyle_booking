@@ -206,15 +206,21 @@ model TimeSlot {
   bookingTimeslots BookingTimeslot[]
 }
 
+enum DayOffStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
 model DayOff {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   stylistId String
-  date      DateTime
+  date      DateTime    
   reason    String?
   status    DayOffStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   stylist Stylist @relation(fields: [stylistId], references: [id])
 }
