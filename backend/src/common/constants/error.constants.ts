@@ -48,7 +48,13 @@ export const ERROR_MESSAGES = {
   CUSTOMER: {
     NOT_FOUND: "Customer not found",
   },
-   NOTIFICATION: {
+  STYLIST: {
+    NOT_FOUND: "Stylist not found",
+    SALON_NOT_ASSIGNED: "Stylist is not assigned to any salon",
+    ALREADY_EXISTS: "Stylist already exists",
+  },
+<<<<<<< HEAD
+  NOTIFICATION: {
     NOT_FOUND: "Notification not found.",
     NOT_OWNER: "You do not have permission to access this notification.",
   },
@@ -56,13 +62,18 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: "Day off request not found.",
     NOT_OWNER: "You do not have permission to access this day off request.",
     NOT_STYLIST: "Only stylists can manage day off requests.",
-    ALREADY_APPROVED_OR_REJECTED: "Cannot cancel a day off request that is already approved or rejected.",
+    ALREADY_APPROVED_OR_REJECTED:
+      "Cannot cancel a day off request that is already approved or rejected.",
     CANCELLATION_FAILED: "Failed to cancel day off request.",
     DATE_CONFLICT: "Day off request conflicts with existing day off.",
-    NOT_MANAGER_FOR_STYLIST: "You do not have permission to approve/reject this stylist's day off request.",
+    NOT_MANAGER_FOR_STYLIST:
+      "You do not have permission to approve/reject this stylist's day off request.",
     INVALID_STATUS_UPDATE: "Invalid status update. Request must be pending.",
-  }
+  },
   FAVORITE: {
+=======
+    FAVORITE: {
+>>>>>>> 84eb0498302de0e172ecf24e3716a28686f0ebeb
     STYLIST_NOT_FOUND: "Stylist not found.",
     ALREADY_FAVORITED: "Stylist is already in your favorites.",
     NOT_FAVORITED: "Stylist is not in your favorites.",
