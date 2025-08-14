@@ -135,6 +135,7 @@ model Booking {
   customerId String
   stylistId  String
   salonId    String
+  workScheduleId String?
   totalPrice Int
   status     BookingStatus  @default(PENDING)
   createdAt  DateTime       @default(now())
@@ -143,6 +144,7 @@ model Booking {
   customer      Customer          @relation(fields: [customerId], references: [id])
   stylist       Stylist           @relation(fields: [stylistId], references: [id])
   salon         Salon             @relation(fields: [salonId], references: [id])
+  workSchedule  WorkSchedule?     @relation("BookingWorkSchedule", fields: [workScheduleId], references: [id], onDelete: SetNull)
   services      BookingService[]
   timeslots     BookingTimeslot[]
   review        Review?
@@ -184,6 +186,7 @@ model WorkSchedule {
   updatedAt        DateTime @updatedAt
 
   stylist   Stylist    @relation(fields: [stylistId], references: [id])
+  bookings  Booking[]  @relation("BookingWorkSchedule") 
   timeSlots TimeSlot[]
 }
 
@@ -204,7 +207,7 @@ enum DayOffStatus {
   PENDING
   APPROVED
   REJECTED
-  CANCELED
+  CANCELLED
 }
 
 model DayOff {

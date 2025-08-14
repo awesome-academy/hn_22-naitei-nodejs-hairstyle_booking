@@ -55,6 +55,19 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: "Notification not found.",
     NOT_OWNER: "You do not have permission to access this notification.",
   },
+  BOOKING: {
+    TIME_SLOT_ALREADY_BOOKED:
+      "One or more time slots have already been booked. Please select different slots.",
+    NOT_FOUND: "Booking not found",
+    NOT_OWNER: "You do not have permission to operate on this booking",
+    FORBIDDEN_VIEW: "You do not have permission to view this list of bookings",
+    NO_TIMESLOT: "Booking has no timeslot",
+    ONLY_PENDING_CAN_CANCEL: "Only pending bookings can be cancelled",
+    INVALID_STATUS_FOR_STYLIST: "Invalid status for stylist",
+    ROLE_NOT_ALLOWED_UPDATE_STATUS:
+      "This role is not allowed to update booking status",
+    NOT_CONSECUTIVE_TIMESLOTS: "The timeslots must be consecutive",
+  },
   DAY_OFF: {
     NOT_FOUND: "Day off request not found.",
     NOT_OWNER: "You do not have permission to access this day off request.",
@@ -66,6 +79,8 @@ export const ERROR_MESSAGES = {
     NOT_MANAGER_FOR_STYLIST:
       "You do not have permission to approve/reject this stylist's day off request.",
     INVALID_STATUS_UPDATE: "Invalid status update. Request must be pending.",
+    PAST_DATE_NOT_ALLOWED: "Cannot request day off for past dates.", // mới, thay cho hardcode ở createDayOffRequest
+    CANCEL_SUCCESS: "Day off request cancelled successfully.", // mới, thay cho message trả về ở cancelDayOffRequest
   },
   FAVORITE: {
     STYLIST_NOT_FOUND: "Stylist not found.",

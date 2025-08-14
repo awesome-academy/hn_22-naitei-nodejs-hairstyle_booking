@@ -44,9 +44,6 @@ export async function customerUpdateStatusBooking(
       });
     }
 
-    // Chỗ này không thể có completed trong kiểu newStatus của customerUpdateStatusBooking
-    // nên nếu muốn handle completed thì tách riêng hàm khác hoặc sửa kiểu
-
     const customer = await tx.customer.findUnique({
       where: { id: customerId },
       select: { totalCancelled: true, totalCompleted: true },
