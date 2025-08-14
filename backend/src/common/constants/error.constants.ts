@@ -6,6 +6,7 @@ export const ERROR_MESSAGES = {
     NOT_STYLIST_ROLE: "User is not a stylist",
     NOT_MANAGER_ROLE: "User is not a manager",
     NOT_ADMIN_ROLE: "User is not an admin",
+    NOT_CUSTOMER_ROLE: "User is not a customer",
     UNSUPPORTED_ROLE: "Unsupported user role",
     USER_NOT_FOUND: "User not found",
     STYLIST_NOT_FOUND: "Stylist not found",
@@ -60,5 +61,10 @@ export const ERROR_MESSAGES = {
     DATE_CONFLICT: "Day off request conflicts with existing day off.",
     NOT_MANAGER_FOR_STYLIST: "You do not have permission to approve/reject this stylist's day off request.",
     INVALID_STATUS_UPDATE: "Invalid status update. Request must be pending.",
+  }
+  FAVORITE: {
+    STYLIST_NOT_FOUND: "Stylist not found.",
+    ALREADY_FAVORITED: "Stylist is already in your favorites.",
+    NOT_FAVORITED: "Stylist is not in your favorites.",
   },
 };
