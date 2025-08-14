@@ -33,10 +33,10 @@ const Navbar = () => {
 
         {/* Menu Items */}
         <ul className="flex space-x-6 text-lg font-semibold">
-          {menuItems.map(({ key, label }) => (
+          {menuItems.map(({ key, label, path }) => (
             <li key={key}>
               <Link
-                to={key === "Home" ? "/" : `#${key}`}
+                to={key === "Home" ? "/" : `${path}`}
                 className="text-white hover:text-gray-200 transition duration-200 relative"
                 onClick={() => scrollToSection(key)}
               >

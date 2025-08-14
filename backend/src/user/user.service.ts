@@ -1,13 +1,14 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateCustomerDto } from "../customer/dtos/create-customer.dto";
 import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
 import { CreateStylistDto } from "../stylist/dto/create-stylist.dto";
-import { ManagerResponseDto } from "../manager/dtos/manager-response.dto";
 import * as bcrypt from "bcrypt";
 import { buildUserResponse } from "./utils/response-builder";
-import { buildManagerResponse } from "../manager/utils/manager-response-builder";
-import { buildStylistResponse } from "../stylist/utils/stylist-response-builder";
 import { buildCustomerResponse } from "../customer/utils/customer-response-builder";
 import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
@@ -30,6 +31,10 @@ import { RoleName } from "../common/enums/role-name.enum";
 import { CustomerService } from "../customer/customer.service";
 import { StylistService } from "../stylist/stylist.service";
 import { ManagerService } from "../manager/manager.service";
+import {
+  UpdateUserStatusDto,
+  UpdateUserStatusResponseDto,
+} from "./dtos/user/update-user-status.dto";
 
 @Injectable()
 export class UserService {
@@ -44,152 +49,6 @@ export class UserService {
     return bcrypt.hash(password, 10);
   }
 
-  async createUserCustomer(
-    dto: CreateCustomerDto,
-  ): Promise<CustomerResponseDto> {
-    const { email, phone, password, ...rest } = dto;
-
-    if (await this.prisma.user.findUnique({ where: { email } })) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
-    }
-
-    if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
-    }
-
-    const hashedPassword = await this.hashPassword(password);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        phone: phone ?? null,
-        password: hashedPassword,
-        fullName: rest.fullName ?? "",
-        gender: rest.gender ?? null,
-        avatar: rest.avatar ?? null,
-        role: {
-          connect: { name: "CUSTOMER" },
-        },
-      },
-      include: { role: true },
-    });
-
-    const customer = await this.customerService.createCustomer({
-      userId: user.id,
-    });
-
-    return buildCustomerResponse({
-      ...customer,
-      user,
-    });
-  }
-
-  async createUserStylist(dto: CreateStylistDto): Promise<StylistResponseDto> {
-    const { email, phone, password, salonId, ...rest } = dto;
-
-    if (await this.prisma.user.findUnique({ where: { email } })) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
-    }
-
-    if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
-    }
-
-    const salon = await this.prisma.salon.findUnique({
-      where: { id: salonId },
-    });
-    if (!salon) {
-      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
-    }
-
-    const hashedPassword = await this.hashPassword(password);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        phone: phone ?? null,
-        password: hashedPassword,
-        fullName: rest.fullName ?? "",
-        gender: rest.gender ?? null,
-        avatar: rest.avatar ?? null,
-        role: {
-          connect: { name: "STYLIST" },
-        },
-        stylist: {
-          create: {
-            salon: {
-              connect: { id: salonId },
-            },
-          },
-        },
-      },
-      include: {
-        role: true,
-        stylist: {
-          include: {
-            salon: true,
-          },
-        },
-      },
-    });
-
-    return buildStylistResponse({
-      ...user.stylist,
-      rating: user.stylist?.rating ?? 0,
-      ratingCount: user.stylist?.ratingCount ?? 0,
-      salon: {
-        id: user.stylist?.salonId ?? "",
-        name: user.stylist?.salon.name ?? "",
-      },
-      user,
-    });
-  }
-
-  public async createUserManager(
-    dto: CreateManagerDto,
-  ): Promise<ManagerResponseDto> {
-    const { email, phone, password, salonId, ...rest } = dto;
-    if (await this.prisma.user.findUnique({ where: { email } })) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
-    }
-    if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
-    }
-    const salon = await this.prisma.salon.findUnique({
-      where: { id: salonId },
-    });
-    if (!salon) {
-      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
-    }
-    const hashedPassword = await this.hashPassword(password);
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        phone: phone ?? null,
-        password: hashedPassword,
-        fullName: rest.fullName ?? "",
-        gender: rest.gender ?? null,
-        avatar: rest.avatar ?? null,
-        role: { connect: { name: RoleName.MANAGER } },
-        manager: { create: { salon: { connect: { id: salonId } } } },
-      },
-      include: { role: true, manager: { include: { salon: true } } },
-    });
-
-    if (!user.manager) {
-      throw new BadRequestException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
-    }
-
-    return buildManagerResponse({
-      ...user.manager,
-      salon: {
-        id: user.manager.salonId,
-        name: user.manager.salon.name,
-      },
-      user,
-    });
-  }
-
   public async validateAdmin(
     email: string,
     password: string,
@@ -208,87 +67,6 @@ export class UserService {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
 
-    const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
-    }
-    return buildUserResponse(user);
-  }
-
-  public async createUserManager(
-    dto: CreateManagerDto,
-  ): Promise<ManagerResponseDto> {
-    const { email, phone, password, salonId, ...rest } = dto;
-    if (await this.prisma.user.findUnique({ where: { email } })) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
-    }
-    if (phone && (await this.prisma.user.findUnique({ where: { phone } }))) {
-      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
-    }
-    const salon = await this.prisma.salon.findUnique({
-      where: { id: salonId },
-    });
-    if (!salon) {
-      throw new BadRequestException(ERROR_MESSAGES.SALON.NOT_FOUND);
-    }
-    const hashedPassword = await this.hashPassword(password);
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        phone: phone ?? null,
-        password: hashedPassword,
-        fullName: rest.fullName ?? "",
-        gender: rest.gender ?? null,
-        avatar: rest.avatar ?? null,
-        role: { connect: { name: RoleName.MANAGER } },
-        manager: { create: { salon: { connect: { id: salonId } } } },
-      },
-      include: { role: true, manager: { include: { salon: true } } },
-    });
-    return buildManagerResponse(user, user.manager);
-  }
-
-  public async validateManager(
-    email: string,
-    password: string,
-  ): Promise<ManagerResponseDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: { role: true, manager: { include: { salon: true } } },
-    });
-    if (!user) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
-    }
-    if (user.role.name !== RoleName.MANAGER) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_MANAGER_ROLE);
-    }
-    if (!user.isActive) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
-    }
-    const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
-    }
-    return buildManagerResponse(user, user.manager);
-  }
-
-  public async validateAdmin(
-    email: string,
-    password: string,
-  ): Promise<UserResponseDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: { role: true },
-    });
-    if (!user) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
-    }
-    if (user.role.name !== RoleName.ADMIN) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_ADMIN_ROLE);
-    }
-    if (!user.isActive) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
-    }
     const passwordValid = await bcrypt.compare(password, user.password);
     if (!passwordValid) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
@@ -320,7 +98,7 @@ export class UserService {
           return this.managerService.getListByAdmin({ page, limit, search });
 
         default:
-          return this.getList({ page, limit, search });
+          return this.getListUsersByAdmin({ page, limit, search });
       }
     }
 
@@ -336,7 +114,67 @@ export class UserService {
     throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
   }
 
-  async getList({
+  async updateUserStatus(
+    currentUser: JwtPayload,
+    targetUserId: string,
+    dto: UpdateUserStatusDto,
+  ): Promise<UpdateUserStatusResponseDto> {
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, fullName: true, isActive: true },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+    }
+
+    if (currentUser.role === "ADMIN") {
+      return this.applyStatusChange(targetUserId, dto.isActive);
+    }
+
+    if (currentUser.role === "MANAGER") {
+      const manager = await this.prisma.manager.findUnique({
+        where: { userId: currentUser.id },
+        select: { salonId: true },
+      });
+
+      if (!manager) {
+        throw new ForbiddenException(ERROR_MESSAGES.MANAGER.NOT_FOUND);
+      }
+
+      const stylist = await this.prisma.stylist.findFirst({
+        where: {
+          userId: targetUserId,
+          salonId: manager.salonId,
+        },
+        select: { id: true },
+      });
+
+      if (!stylist) {
+        throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
+      }
+
+      return this.applyStatusChange(targetUserId, dto.isActive);
+    }
+
+    throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
+  }
+
+  private async applyStatusChange(userId: string, isActive: boolean) {
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive },
+      select: { id: true, fullName: true, isActive: true },
+    });
+
+    return {
+      userId: updated.id,
+      fullName: updated.fullName,
+      isActive: updated.isActive,
+    };
+  }
+
+  private async getListUsersByAdmin({
     page = 1,
     limit = 10,
     search,
@@ -346,41 +184,27 @@ export class UserService {
     search?: string;
   }): Promise<UserListResponseDto> {
     const skip = (page - 1) * limit;
-
     const where = search
       ? {
-          OR: [
-            {
-              fullName: {
-                contains: search,
-              },
-            },
-            {
-              email: {
-                contains: search,
-              },
-            },
-          ],
+          OR: ["fullName", "email"].map((field) => ({
+            [field]: { contains: search },
+          })),
         }
       : undefined;
 
-    const [users, total] = await Promise.all([
+    const [users, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
         where,
         skip,
         take: limit,
-        include: {
-          role: true,
-        },
+        include: { role: true },
         orderBy: { createdAt: "desc" },
       }),
       this.prisma.user.count({ where }),
     ]);
 
-    const data = users.map((user) => buildUserResponse(user));
-
     return {
-      data,
+      data: users.map(buildUserResponse),
       pagination: {
         currentPage: page,
         itemsPerPage: limit,
