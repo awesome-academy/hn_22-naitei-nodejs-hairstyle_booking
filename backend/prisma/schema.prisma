@@ -57,6 +57,7 @@ model Salon {
   stylists Stylist[]
   bookings Booking[]
   stats    SalonStats[]
+  dayOffs  DayOff[] 
 }
 
 model Manager {
