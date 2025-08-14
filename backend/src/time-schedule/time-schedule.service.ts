@@ -38,6 +38,10 @@ export class TimeScheduleService {
       orderBy: { workingDate: "asc" },
     });
 
-    return schedules;
+    return schedules.map((ws) => ({
+      workingDate: ws.workingDate,
+      isDayOff: ws.isDayOff,
+      timeSlots: ws.isDayOff ? [] : ws.timeSlots.filter((ts) => !ts.isBooked),
+    }));
   }
 }

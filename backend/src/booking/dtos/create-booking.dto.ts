@@ -20,4 +20,7 @@ export class CreateBookingDto {
   @ArrayNotEmpty()
   @IsUUID("all", { each: true })
   serviceIds: string[];
+
+  @IsUUID()
+  workScheduleId: string;
 }

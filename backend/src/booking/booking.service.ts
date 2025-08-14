@@ -17,6 +17,8 @@ import {
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { RoleName } from "../common/enums/role-name.enum";
 import { BookingStatus } from "../common/enums/booking-status.enum";
+import { ERROR_MESSAGES } from "../common/constants/error.constants";
+import { SLOT_DURATION_MINUTES } from "src/common/constants/work-schedule.const";
 
 @Injectable()
 export class BookingService {
@@ -27,7 +29,24 @@ export class BookingService {
     dto: CreateBookingDto,
   ): Promise<BookingResponseDto> {
     return this.prisma.$transaction(async (tx) => {
-      // Kiểm tra tất cả timeSlotIds chưa bị đặt
+      const services = await tx.service.findMany({
+        where: { id: { in: dto.serviceIds } },
+        select: { duration: true },
+      });
+
+      if (!services || services.length === 0) {
+        throw new BadRequestException(ERROR_MESSAGES.SERVICE.NOT_FOUND);
+      }
+
+      const totalDuration = services.reduce((sum, s) => sum + s.duration, 0);
+      const requiredSlots = Math.ceil(totalDuration / SLOT_DURATION_MINUTES);
+
+      if (dto.timeSlotIds.length < requiredSlots) {
+        throw new BadRequestException(
+          `Please select at least ${requiredSlots} time slots for the chosen services.`, // NOTE: có thể dùng ERROR_MESSAGES.BOOKING.NOT_ENOUGH_TIMESLOTS
+        );
+      }
+
       const availableSlots = await tx.timeSlot.findMany({
         where: {
           id: { in: dto.timeSlotIds },
@@ -37,8 +56,22 @@ export class BookingService {
 
       if (availableSlots.length !== dto.timeSlotIds.length) {
         throw new BadRequestException(
-          "Một hoặc nhiều khung giờ đã bị đặt, vui lòng chọn khung giờ khác.",
+          ERROR_MESSAGES.BOOKING.TIME_SLOT_ALREADY_BOOKED,
         );
+      }
+
+      availableSlots.sort(
+        (a, b) => a.startTime.getTime() - b.startTime.getTime(),
+      );
+      for (let i = 1; i < availableSlots.length; i++) {
+        if (
+          availableSlots[i].startTime.getTime() !==
+          availableSlots[i - 1].endTime.getTime()
+        ) {
+          throw new BadRequestException(
+            ERROR_MESSAGES.BOOKING.NOT_CONSECUTIVE_TIMESLOTS,
+          );
+        }
       }
 
       const booking = await tx.booking.create({
@@ -46,6 +79,7 @@ export class BookingService {
           customerId,
           stylistId: dto.stylistId,
           salonId: dto.salonId,
+          workScheduleId: dto.workScheduleId,
           totalPrice: dto.totalPrice,
           status: "PENDING",
           services: {
@@ -54,7 +88,6 @@ export class BookingService {
         },
       });
 
-      // Tạo bookingTimeslot & update isBooked
       for (const timeSlotId of dto.timeSlotIds) {
         await tx.bookingTimeslot.create({
           data: {
@@ -97,7 +130,7 @@ export class BookingService {
         },
       });
       if (!fullBooking) {
-        throw new NotFoundException("Booking not found");
+        throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
       }
       return buildBookingResponse(fullBooking);
     });
@@ -133,20 +166,19 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new NotFoundException("Booking không tồn tại");
+      throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
     }
 
     const role = String(user.role || "").toUpperCase();
 
-    // Quyền truy cập
     if (role === RoleName.ADMIN) {
     } else if (role === RoleName.CUSTOMER) {
       if (booking.customer.user.id !== user.id) {
-        throw new ForbiddenException("Bạn không có quyền xem booking này");
+        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.FORBIDDEN_VIEW);
       }
     } else if (role === RoleName.STYLIST) {
       if (booking.stylist.user.id !== user.id) {
-        throw new ForbiddenException("Bạn không có quyền xem booking này");
+        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.FORBIDDEN_VIEW);
       }
     } else if (role === RoleName.MANAGER) {
       const managerSalon = await this.prisma.manager.findFirst({
@@ -155,14 +187,14 @@ export class BookingService {
       });
 
       if (!managerSalon) {
-        throw new ForbiddenException("Bạn không phải là manager");
+        throw new ForbiddenException(ERROR_MESSAGES.MANAGER.SALON_NOT_FOUND);
       }
 
       if (booking.salon.id !== managerSalon.salonId) {
-        throw new ForbiddenException("Bạn không có quyền xem booking này");
+        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.FORBIDDEN_VIEW);
       }
     } else {
-      throw new ForbiddenException("Bạn không có quyền xem booking này");
+      throw new ForbiddenException(ERROR_MESSAGES.BOOKING.FORBIDDEN_VIEW);
     }
     return buildBookingResponse(booking);
   }
@@ -187,7 +219,6 @@ export class BookingService {
       }
     }
 
-    // Check quyền theo role
     const role = user.role;
 
     if (role === RoleName.CUSTOMER) {
@@ -201,12 +232,12 @@ export class BookingService {
       });
 
       if (!managerSalon) {
-        throw new ForbiddenException("Bạn không phải là manager");
+        throw new ForbiddenException(ERROR_MESSAGES.MANAGER.SALON_NOT_FOUND);
       }
 
       where.salonId = managerSalon.salonId;
     } else if (role !== RoleName.ADMIN) {
-      throw new ForbiddenException("Bạn không có quyền xem danh sách bookings");
+      throw new ForbiddenException(ERROR_MESSAGES.BOOKING.FORBIDDEN_VIEW);
     }
 
     const [totalItems, bookings] = await this.prisma.$transaction([
@@ -274,21 +305,22 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new NotFoundException("Booking not found");
+      throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
     }
 
-    // CUSTOMER hủy booking
     if (user.role === "CUSTOMER") {
       if (booking.customer.userId !== user.id) {
-        throw new ForbiddenException("Not your booking");
+        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
       }
       if (booking.status !== BookingStatus.PENDING) {
-        throw new BadRequestException("Only pending bookings can be cancelled");
+        throw new BadRequestException(
+          ERROR_MESSAGES.BOOKING.ONLY_PENDING_CAN_CANCEL,
+        );
       }
 
       const firstSlot = booking.timeslots[0]?.timeSlot;
       if (!firstSlot) {
-        throw new BadRequestException("Booking has no timeslot");
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NO_TIMESLOT);
       }
 
       const newStatus = getCancelStatus(firstSlot.startTime, 3);
@@ -300,19 +332,20 @@ export class BookingService {
         newStatus,
       );
     }
-    // STYLIST cập nhật completed hoặc cancelled
     if (user.role === "STYLIST") {
       if (booking.stylist.userId !== user.id) {
-        throw new ForbiddenException("Not your booking");
+        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
       }
       if (
         ![BookingStatus.COMPLETED, BookingStatus.CANCELLED].includes(dto.status)
       ) {
-        throw new BadRequestException("Invalid status for stylist");
+        throw new BadRequestException(
+          ERROR_MESSAGES.BOOKING.INVALID_STATUS_FOR_STYLIST,
+        );
       }
       const firstSlot = booking.timeslots[0]?.timeSlot;
       if (!firstSlot) {
-        throw new BadRequestException("Booking has no timeslot");
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NO_TIMESLOT);
       }
 
       const newStatus = getCancelStatus(firstSlot.startTime, 3);
@@ -324,6 +357,8 @@ export class BookingService {
         newStatus,
       );
     }
-    throw new ForbiddenException("Role not allowed to update booking status");
+    throw new ForbiddenException(
+      ERROR_MESSAGES.BOOKING.ROLE_NOT_ALLOWED_UPDATE_STATUS,
+    );
   }
 }
