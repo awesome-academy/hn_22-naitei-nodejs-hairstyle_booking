@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { UserService } from "../user/user.service";
 import { Prisma } from "@prisma/client";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { GetStylistsQueryDto } from "./dto/get-stylists-query.dto";
