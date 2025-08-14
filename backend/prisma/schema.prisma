@@ -214,6 +214,8 @@ model DayOff {
   updatedAt DateTime     @updatedAt
 
   stylist Stylist @relation(fields: [stylistId], references: [id])
+  salonId   String       
+  salon     Salon        @relation(fields: [salonId], references: [id]) 
 }
 
 model Review {
