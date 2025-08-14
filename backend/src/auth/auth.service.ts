@@ -51,7 +51,7 @@ export class AuthService {
   ) {}
 
   async registerCustomer(dto: RegisterDto): Promise<AuthCustomerResponseDto> {
-    const customer = await this.userService.createUserCustomer(dto);
+    const customer = await this.customerService.createCustomer(dto);
 
     const payload = {
       id: customer.id,
@@ -113,7 +113,7 @@ export class AuthService {
       default:
         throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
     }
-    
+
     const payload = {
       id: userResponse.id,
       email: userResponse.email,
@@ -143,7 +143,7 @@ export class AuthService {
     if (!adminUser) {
       throw new UnauthorizedException(ERROR_MESSAGES.USER.UN_AUTH);
     }
-      
+
     const payload = {
       sub: adminUser.id,
       email: adminUser.email,

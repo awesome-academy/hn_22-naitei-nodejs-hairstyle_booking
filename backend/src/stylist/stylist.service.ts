@@ -14,15 +14,14 @@ import {
   UnauthorizedException,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class StylistService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
+
   async createStylist(
     currentUser: JwtPayload,
     dto: CreateStylistDto,
@@ -31,16 +30,37 @@ export class StylistService {
       where: { userId: currentUser.id },
       select: { salonId: true },
     });
-
     if (!manager) {
       throw new ForbiddenException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
     }
 
-    const user = await this.userService.createUserStylist(dto);
-
-    if (!user) {
-      throw new NotFoundException(ERROR_MESSAGES.AUTH.USER_NOT_FOUND);
+    if (await this.prisma.user.findUnique({ where: { email: dto.email } })) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
     }
+    if (
+      dto.phone &&
+      (await this.prisma.user.findUnique({ where: { phone: dto.phone } }))
+    ) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
+    }
+
+    const role = await this.prisma.role.findUnique({
+      where: { name: "STYLIST" },
+    });
+    if (!role) throw new NotFoundException(ERROR_MESSAGES.ROLE.NOT_FOUND);
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        phone: dto.phone ?? null,
+        fullName: dto.fullName,
+        gender: dto.gender ?? null,
+        avatar: dto.avatar ?? null,
+        password: hashedPassword,
+        roleId: role.id,
+      },
+    });
 
     const stylist = await this.prisma.stylist.create({
       data: {

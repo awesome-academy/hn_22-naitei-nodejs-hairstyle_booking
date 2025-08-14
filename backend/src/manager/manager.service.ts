@@ -5,17 +5,18 @@ import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { buildManagerResponse } from "./utils/manager-response-builder";
 import { CreateManagerDto } from "./dtos/create-manager.dto";
 import { ManagerResponseDto } from "./dtos/manager-response.dto";
-import { UnauthorizedException, NotFoundException } from "@nestjs/common";
+import {
+  UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
 import { RoleName } from "../common/enums/role-name.enum";
 import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class ManagerService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async createManager(
     currentUser: JwtPayload,
@@ -25,7 +26,6 @@ export class ManagerService {
       where: { id: currentUser.id },
       include: { role: true },
     });
-
     if (!admin || admin.role.name !== RoleName.ADMIN) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_ADMIN_ROLE);
     }
@@ -33,16 +33,38 @@ export class ManagerService {
     const salon = await this.prisma.salon.findUnique({
       where: { id: dto.salonId },
     });
-
     if (!salon) {
       throw new NotFoundException(ERROR_MESSAGES.SALON.NOT_FOUND);
     }
 
-    const user = await this.userService.createUserManager(dto);
-
-    if (!user) {
-      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_NOT_FOUND);
+    if (await this.prisma.user.findUnique({ where: { email: dto.email } })) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.EMAIL_ALREADY_EXISTS);
     }
+    if (
+      dto.phone &&
+      (await this.prisma.user.findUnique({ where: { phone: dto.phone } }))
+    ) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.PHONE_ALREADY_EXISTS);
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    const role = await this.prisma.role.findUnique({
+      where: { name: "MANAGER" },
+    });
+    if (!role) throw new NotFoundException(ERROR_MESSAGES.ROLE.NOT_FOUND);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        phone: dto.phone ?? null,
+        fullName: dto.fullName,
+        password: hashedPassword,
+        gender: dto.gender ?? null,
+        avatar: dto.avatar ?? null,
+        roleId: role.id,
+      },
+    });
 
     const manager = await this.prisma.manager.create({
       data: {
