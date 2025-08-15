@@ -15,6 +15,13 @@ enum BookingStatus {
   CANCELLED_DAYOFF // hủy do dayOff của stylist
 }
 
+enum DayOffStatus {
+  PENDING    
+  APPROVED  
+  REJECTED  
+  CANCELED  
+}
+
 model Role {
   id          String  @id @default(uuid())
   name        String  @unique
@@ -218,6 +225,7 @@ model DayOff {
   status    DayOffStatus @default(PENDING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+
   stylist Stylist @relation(fields: [stylistId], references: [id])
   salonId   String       
   salon     Salon        @relation(fields: [salonId], references: [id]) 
