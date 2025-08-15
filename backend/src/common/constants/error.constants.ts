@@ -53,7 +53,6 @@ export const ERROR_MESSAGES = {
     SALON_NOT_ASSIGNED: "Stylist is not assigned to any salon",
     ALREADY_EXISTS: "Stylist already exists",
   },
-<<<<<<< HEAD
   NOTIFICATION: {
     NOT_FOUND: "Notification not found.",
     NOT_OWNER: "You do not have permission to access this notification.",
@@ -71,11 +70,10 @@ export const ERROR_MESSAGES = {
     INVALID_STATUS_UPDATE: "Invalid status update. Request must be pending.",
   },
   FAVORITE: {
-=======
     FAVORITE: {
->>>>>>> 84eb0498302de0e172ecf24e3716a28686f0ebeb
-    STYLIST_NOT_FOUND: "Stylist not found.",
-    ALREADY_FAVORITED: "Stylist is already in your favorites.",
-    NOT_FAVORITED: "Stylist is not in your favorites.",
+      STYLIST_NOT_FOUND: "Stylist not found.",
+      ALREADY_FAVORITED: "Stylist is already in your favorites.",
+      NOT_FAVORITED: "Stylist is not in your favorites.",
+    },
   },
 };

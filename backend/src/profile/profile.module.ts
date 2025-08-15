@@ -10,7 +10,7 @@ import { ManagerModule } from "src/manager/manager.module";
 @Module({
   imports: [AuthModule, CustomerModule, StylistModule, ManagerModule],
   controllers: [ProfileController],
-  providers: [UserService, PrismaService, ProfileService],
+  providers: [PrismaService, ProfileService],
   exports: [ProfileService],
 })
 export class ProfileModule {}
