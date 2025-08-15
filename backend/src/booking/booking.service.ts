@@ -25,13 +25,25 @@ export class BookingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBooking(
-    customerId: string,
+    userId: string,
     dto: CreateBookingDto,
   ): Promise<BookingResponseDto> {
     return this.prisma.$transaction(async (tx) => {
+      const customer = await tx.customer.findUnique({
+        where: { userId: userId },
+      });
+      if (!customer)
+        throw new NotFoundException(ERROR_MESSAGES.CUSTOMER.NOT_FOUND);
+
+      const stylist = await tx.stylist.findUnique({
+        where: { id: dto.stylistId },
+      });
+      if (!stylist)
+        throw new NotFoundException(ERROR_MESSAGES.STYLIST.NOT_FOUND);
+
       const services = await tx.service.findMany({
         where: { id: { in: dto.serviceIds } },
-        select: { duration: true },
+        select: { duration: true, price: true },
       });
 
       if (!services || services.length === 0) {
@@ -74,13 +86,15 @@ export class BookingService {
         }
       }
 
+      const totalPrice = services.reduce((sum, s) => sum + s.price, 0);
+
       const booking = await tx.booking.create({
         data: {
-          customerId,
+          customerId: customer.id,
           stylistId: dto.stylistId,
           salonId: dto.salonId,
           workScheduleId: dto.workScheduleId,
-          totalPrice: dto.totalPrice,
+          totalPrice,
           status: "PENDING",
           services: {
             create: dto.serviceIds.map((serviceId) => ({ serviceId })),

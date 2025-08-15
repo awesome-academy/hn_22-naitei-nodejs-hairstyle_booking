@@ -7,10 +7,6 @@ export class CreateBookingDto {
   @IsUUID()
   salonId: string;
 
-  @IsInt()
-  @Min(0)
-  totalPrice: number;
-
   @IsArray()
   @ArrayNotEmpty()
   @IsUUID("all", { each: true })

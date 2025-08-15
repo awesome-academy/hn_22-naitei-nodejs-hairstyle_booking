@@ -129,7 +129,10 @@ export class AuthService {
       };
     } else if (userResponse.role.name === RoleName.STYLIST) {
       return { access_token, stylist: userResponse as StylistResponseDto };
+    } else if (userResponse.role.name === RoleName.MANAGER) {
+      return { access_token, manager: userResponse as ManagerResponseDto };
     }
+
     throw new Error("Unexpected user type during login response creation.");
   }
 
@@ -145,7 +148,7 @@ export class AuthService {
     }
 
     const payload = {
-      sub: adminUser.id,
+      id: adminUser.id,
       email: adminUser.email,
       role: adminUser.role.name,
     };
