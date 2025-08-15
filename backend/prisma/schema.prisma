@@ -8,11 +8,9 @@ datasource db {
 }
 
 enum BookingStatus {
-  PENDING          // Đang chờ thực hiện
-  COMPLETED        // Hoàn thành
-  CANCELLED         // Hủy bị phạt, do quá giờ
-  CANCELLED_EARLY //  Hủy chấp nhận được, hủy trước giờ, 
-  CANCELLED_DAYOFF // hủy do dayOff của stylist
+  PENDING
+  COMPLETED
+  CANCELED
 }
 
 model Role {
@@ -29,6 +27,7 @@ model User {
   password  String
   phone     String?  @unique
   avatar    String?
+  address   String?
   isActive  Boolean  @default(true)
   gender    String?
   roleId    String
@@ -135,7 +134,6 @@ model Booking {
   customerId String
   stylistId  String
   salonId    String
-  workScheduleId String?
   totalPrice Int
   status     BookingStatus  @default(PENDING)
   createdAt  DateTime       @default(now())
@@ -144,7 +142,6 @@ model Booking {
   customer      Customer          @relation(fields: [customerId], references: [id])
   stylist       Stylist           @relation(fields: [stylistId], references: [id])
   salon         Salon             @relation(fields: [salonId], references: [id])
-  workSchedule  WorkSchedule?     @relation("BookingWorkSchedule", fields: [workScheduleId], references: [id], onDelete: SetNull)
   services      BookingService[]
   timeslots     BookingTimeslot[]
   review        Review?
@@ -177,7 +174,6 @@ model WorkSchedule {
   id               String   @id @default(uuid())
   stylistId        String
   workingDate      DateTime
-  isDayOff         Boolean  @default(false)
   morningStartTime DateTime
   morningEndTime   DateTime
   afternoonStart   DateTime
@@ -186,7 +182,6 @@ model WorkSchedule {
   updatedAt        DateTime @updatedAt
 
   stylist   Stylist    @relation(fields: [stylistId], references: [id])
-  bookings  Booking[]  @relation("BookingWorkSchedule") 
   timeSlots TimeSlot[]
 }
 
@@ -195,11 +190,11 @@ model TimeSlot {
   scheduleId String
   startTime  DateTime
   endTime    DateTime
-  isBooked   Boolean?  @default(false)
+  isBooked   Boolean
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  workingSchedule         WorkSchedule      @relation(fields: [scheduleId], references: [id])
+  schedule         WorkSchedule      @relation(fields: [scheduleId], references: [id])
   bookingTimeslots BookingTimeslot[]
 }
 
@@ -207,7 +202,7 @@ enum DayOffStatus {
   PENDING
   APPROVED
   REJECTED
-  CANCELLED
+  CANCELED
 }
 
 model DayOff {
@@ -218,6 +213,7 @@ model DayOff {
   status    DayOffStatus @default(PENDING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+
   stylist Stylist @relation(fields: [stylistId], references: [id])
   salonId   String       
   salon     Salon        @relation(fields: [salonId], references: [id]) 

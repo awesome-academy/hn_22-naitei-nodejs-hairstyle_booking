@@ -98,7 +98,7 @@ export class ManagerService {
     if (!user.isActive) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
-    if (user.role.name !== RoleName.MANAGER) {
+    if (user.role.name !== RoleName.MANAGER.toString()) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_MANAGER_ROLE);
     }
     if (!user.manager) {
