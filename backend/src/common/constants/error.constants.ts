@@ -85,8 +85,10 @@ export const ERROR_MESSAGES = {
     CANCEL_SUCCESS: "Day off request cancelled successfully.", // mới, thay cho message trả về ở cancelDayOffRequest
   },
   FAVORITE: {
-    STYLIST_NOT_FOUND: "Stylist not found.",
-    ALREADY_FAVORITED: "Stylist is already in your favorites.",
-    NOT_FAVORITED: "Stylist is not in your favorites.",
+    FAVORITE: {
+      STYLIST_NOT_FOUND: "Stylist not found.",
+      ALREADY_FAVORITED: "Stylist is already in your favorites.",
+      NOT_FAVORITED: "Stylist is not in your favorites.",
+    },
   },
 };
