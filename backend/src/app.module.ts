@@ -14,10 +14,15 @@ import { ServiceModule } from "./service/service.module";
 import { CustomerModule } from "./customer/customer.module";
 import { ManagerModule } from "./manager/manager.module";
 import { ProfileModule } from "./profile/profile.module";
+import { BookingModule } from "./booking/booking.module";
+import { ScheduleModule } from "@nestjs/schedule";
+import { WorkSchedulesJob } from "./jobs/work-schedules.job";
+import { TimeScheduleModule } from "./time-schedule/time-schedule.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UserModule,
@@ -27,6 +32,8 @@ import { ProfileModule } from "./profile/profile.module";
     CustomerModule,
     ManagerModule,
     ProfileModule,
+    BookingModule,
+    TimeScheduleModule,
   ],
   controllers: [AppController],
   providers: [
@@ -39,6 +46,7 @@ import { ProfileModule } from "./profile/profile.module";
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    WorkSchedulesJob,
   ],
 })
 export class AppModule {}

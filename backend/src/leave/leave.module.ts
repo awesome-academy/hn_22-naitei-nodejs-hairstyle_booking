@@ -1,18 +1,13 @@
-import { Module } from '@nestjs/common';
-import { LeaveController } from './leave.controller';
-import { LeaveService } from './leave.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Module } from "@nestjs/common";
+import { LeaveController } from "./leave.controller";
+import { LeaveService } from "./leave.service";
+import { PrismaService } from "src/prisma/prisma.service";
 
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
-  imports: [
-    AuthModule,
-  ],
+  imports: [AuthModule],
   controllers: [LeaveController],
-  providers: [
-    LeaveService,
-    PrismaService,
-  ],
+  providers: [LeaveService, PrismaService],
 })
 export class LeaveModule {}
