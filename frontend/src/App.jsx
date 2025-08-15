@@ -4,6 +4,8 @@ import Home from "./pages/Home";
 import Services from "./pages/Services";
 import Salons from "./pages/Salons";
 import Profile from "./pages/Profile";
+import UserManagementPage from "./pages/admin/UserManagementPage"
+import AdminLogin from "./pages/admin/AdminLogin"
 import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/salons" element={<Salons />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/user-management" element={<UserManagementPage />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
