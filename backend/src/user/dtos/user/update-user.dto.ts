@@ -6,7 +6,7 @@ export class UpdateUserDto {
   fullName?: string;
 
   @IsOptional()
-  @IsPhoneNumber("VN", { message: "Invalid phone number format." })
+  @IsPhoneNumber(undefined, { message: "Invalid phone number format." })
   phone?: string;
 
   @IsOptional()

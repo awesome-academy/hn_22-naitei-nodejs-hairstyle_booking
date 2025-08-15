@@ -50,6 +50,8 @@ export const ERROR_MESSAGES = {
   },
   STYLIST: {
     NOT_FOUND: "Stylist not found",
+    SALON_NOT_ASSIGNED: "Stylist is not assigned to any salon",
+    ALREADY_EXISTS: "Stylist already exists",
   },
   NOTIFICATION: {
     NOT_FOUND: "Notification not found.",
