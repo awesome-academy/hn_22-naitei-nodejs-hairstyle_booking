@@ -1,13 +1,10 @@
-// frontend/src/pages/AdminLogin.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { useAuthContext } from "../../contexts/AuthContext";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { loginAdmin, loading } = useAuth();
-  const { updateAuthState } = useAuthContext();
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,10 +15,16 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Focus on email input when component mounts
+    const token = localStorage.getItem("token");
+    const userRole = localStorage.getItem("userRole");
+
+    if (token && userRole === "ADMIN") {
+      navigate("/user-management"); 
+    }
+
     const emailInput = document.querySelector('input[name="email"]');
     if (emailInput) emailInput.focus();
-  }, []);
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -62,8 +65,7 @@ const AdminLogin = () => {
       const result = await loginAdmin(formData);
 
       if (result.success) {
-        updateAuthState(result.user);
-        navigate(result.navigationPath);
+        navigate("/user-management");
         window.location.reload();
       } else {
         setError(result.error);
@@ -96,7 +98,7 @@ const AdminLogin = () => {
             </svg>
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Admin Portal</h2>
-          <p className="text-blue-200">Sign in to your admin account</p>
+          <p className="text-blue-200">Sign in to access User Management</p>
         </div>
 
         <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl p-8 border border-white/20">
@@ -249,7 +251,7 @@ const AdminLogin = () => {
                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                     />
                   </svg>
-                  Sign In as Admin
+                  Access User Management
                 </>
               )}
             </button>
@@ -263,16 +265,6 @@ const AdminLogin = () => {
                 className="text-blue-300 font-semibold hover:text-white hover:underline transition-colors"
               >
                 Go to Main Site
-              </Link>
-            </p>
-
-            <p className="text-blue-200 text-sm">
-              Forgot your password?{" "}
-              <Link
-                to="/admin/forgot-password"
-                className="text-blue-300 font-semibold hover:text-white hover:underline transition-colors"
-              >
-                Reset Password
               </Link>
             </p>
           </div>
