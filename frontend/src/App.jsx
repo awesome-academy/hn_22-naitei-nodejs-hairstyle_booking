@@ -6,6 +6,7 @@ import Salons from "./pages/Salons";
 import Profile from "./pages/Profile";
 import UserManagementPage from "./pages/admin/UserManagementPage"
 import AdminLogin from "./pages/admin/AdminLogin"
+import SalonManagementPage from "./pages/admin/SalonManagementPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
@@ -22,6 +23,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/user-management" element={<UserManagementPage />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin/salons" element={<SalonManagementPage />} />
 
           {/* Auth Routes */}
           <Route path="/login" element={<Login />} />

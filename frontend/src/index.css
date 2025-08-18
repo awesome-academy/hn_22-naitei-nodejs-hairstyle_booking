@@ -57,6 +57,24 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.admin-layout {
+  width: 100vw;
+  min-height: 100vh;
+}
+
+.admin-header {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-sidebar {
+  flex-shrink: 0;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
