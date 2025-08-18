@@ -88,7 +88,6 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
-
     userRoleName = user.role.name as RoleName;
 
     switch (userRoleName) {
