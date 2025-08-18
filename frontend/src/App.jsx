@@ -6,6 +6,7 @@ import Salons from "./pages/Salons";
 import Profile from "./pages/Profile";
 import UserManagementPage from "./pages/admin/UserManagementPage"
 import AdminLogin from "./pages/admin/AdminLogin"
+import SalonManagementPage from "./pages/admin/SalonManagementPage";
 import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/user-management" element={<UserManagementPage />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin/salons" element={<SalonManagementPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
