@@ -13,6 +13,6 @@ export class StylistController {
   async getAllStylists(
     @Query() query: GetStylistsQueryDto,
   ): Promise<StylistListResponseDto> {
-    return this.stylistService.getStylistsByCustomer(query);
+    return this.stylistService.getListByCustomer(query);
   }
 }

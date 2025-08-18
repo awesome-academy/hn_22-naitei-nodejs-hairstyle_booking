@@ -4,9 +4,6 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateCustomerDto } from "../customer/dtos/create-customer.dto";
-import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
-import { CreateStylistDto } from "../stylist/dto/create-stylist.dto";
 import * as bcrypt from "bcrypt";
 import { buildUserResponse } from "./utils/response-builder";
 import { buildCustomerResponse } from "../customer/utils/customer-response-builder";
@@ -26,7 +23,10 @@ import {
   UserListResponseDto,
   UserResponseDto,
 } from "./dtos/user/user-response.dto";
-import { ManagerListResponseDto } from "../manager/dtos/manager-response.dto";
+import {
+  ManagerListResponseDto,
+  ManagerResponseDto,
+} from "../manager/dtos/manager-response.dto";
 import { RoleName } from "../common/enums/role-name.enum";
 import { CustomerService } from "../customer/customer.service";
 import { StylistService } from "../stylist/stylist.service";
@@ -104,13 +104,46 @@ export class UserService {
 
     if (viewer.role === "MANAGER") {
       if (!role || role === "STYLIST") {
-        return this.stylistService.getStylistsByManager(viewer.id, {
+        return this.stylistService.getListByManager(viewer.id, {
           search,
           limit,
           page,
         });
       }
     }
+    throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
+  }
+
+  async getUserDetailByViewer(viewer: JwtPayload, targetUserId: string) {
+    if (viewer.role === RoleName.ADMIN) {
+      const target = await this.prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { role: true },
+      });
+
+      if (!target) throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+
+      switch (target.role.name) {
+        case RoleName.CUSTOMER:
+          return this.customerService.getByIdForAdmin(targetUserId);
+        case RoleName.STYLIST:
+          return this.stylistService.getByIdForAdmin(targetUserId);
+        case RoleName.MANAGER:
+          return this.managerService.getByIdForAdmin(targetUserId);
+        default:
+          const user = await this.prisma.user.findUnique({
+            where: { id: targetUserId },
+            include: { role: true },
+          });
+          if (!user) throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+          return buildUserResponse(user);
+      }
+    }
+
+    if (viewer.role === RoleName.MANAGER) {
+      return this.stylistService.getByIdForManager(viewer.id, targetUserId);
+    }
+
     throw new ForbiddenException(ERROR_MESSAGES.AUTH.FORBIDDEN_VIEWER_ROLE);
   }
 

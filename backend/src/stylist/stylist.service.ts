@@ -83,9 +83,7 @@ export class StylistService {
       where: { email },
       include: {
         role: true,
-        stylist: {
-          include: { salon: true },
-        },
+        stylist: { include: { salon: true } },
       },
     });
 
@@ -107,30 +105,72 @@ export class StylistService {
     }
 
     return buildStylistResponse({
-      rating: user.stylist.rating,
-      ratingCount: user.stylist.ratingCount,
-      salon: {
-        id: user.stylist.salonId,
-        name: user.stylist.salon.name,
-      },
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        avatar: user.avatar,
-        gender: user.gender,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        role: {
-          name: user.role.name,
-        },
-      },
+      ...user.stylist,
+      salon: user.stylist.salon,
+      user,
     });
   }
 
-  async getStylistsByCustomer(
+  async getByIdForAdmin(id: string): Promise<StylistResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        role: true,
+        stylist: { include: { salon: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+    }
+
+    if (!user.stylist) {
+      throw new NotFoundException(ERROR_MESSAGES.STYLIST.NOT_FOUND);
+    }
+
+    return buildStylistResponse({
+      ...user.stylist,
+      salon: user.stylist.salon,
+      user,
+    });
+  }
+
+  async getByIdForManager(
+    viewerUserId: string,
+    targetUserId: string,
+  ): Promise<StylistResponseDto> {
+    const stylist = await this.prisma.stylist.findUnique({
+      where: { userId: targetUserId },
+      include: { salon: true, user: { include: { role: true } } },
+    });
+
+    if (!stylist) {
+      throw new NotFoundException(ERROR_MESSAGES.STYLIST.NOT_FOUND);
+    }
+
+    const manager = await this.prisma.manager.findUnique({
+      where: { userId: viewerUserId },
+      select: { salonId: true },
+    });
+
+    if (!manager) {
+      throw new ForbiddenException(ERROR_MESSAGES.AUTH.NOT_MANAGER_ROLE);
+    }
+
+    if (stylist.salonId !== manager.salonId) {
+      throw new ForbiddenException(
+        "Managers can only view stylists in their own salon",
+      );
+    }
+
+    return buildStylistResponse({
+      ...stylist,
+      salon: stylist.salon,
+      user: stylist.user,
+    });
+  }
+
+  async getListByCustomer(
     query: GetStylistsQueryDto,
   ): Promise<StylistListResponseDto> {
     const { search, salonId, minRating, page = 1, limit = 10 } = query;
@@ -274,7 +314,7 @@ export class StylistService {
     };
   }
 
-  async getStylistsByManager(
+  async getListByManager(
     managerId: string,
     query: { search?: string; page?: number; limit?: number },
   ): Promise<StylistListResponseDto> {
