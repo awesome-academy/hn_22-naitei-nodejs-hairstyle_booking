@@ -11,6 +11,7 @@ import { BookingService } from "./booking.service";
 import { CreateBookingDto } from "./dtos/create-booking.dto";
 import { GetBookingsQueryDto } from "./dtos/get-bookings-query.dto";
 import { UpdateBookingStatusDto } from "./dtos/update-booking-status.dto";
+import { CreateReviewDto } from "./dtos/create-review.dto";
 import {
   BookingResponseDto,
   BookingListResponseDto,
@@ -56,5 +57,15 @@ export class BookingController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.bookingService.updateBookingStatus(id, user, dto);
+  }
+
+  @Post(":id/review")
+  @Roles("CUSTOMER")
+  async reviewBooking(
+    @Param("id") bookingId: string,
+    @Body() dto: CreateReviewDto,
+    @CurrentUser("id") customerId: string,
+  ) {
+    return this.bookingService.reviewBooking(bookingId, customerId, dto);
   }
 }
