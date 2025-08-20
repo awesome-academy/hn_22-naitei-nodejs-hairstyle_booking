@@ -57,8 +57,10 @@ model Salon {
   managers Manager[]
   stylists Stylist[]
   bookings Booking[]
-  stats    SalonStats[]
   dayOffs  DayOff[] 
+  dailyStats       SalonDailyStats[]
+  stylistDailyStats StylistDailyStats[]
+  serviceMonthlyStats ServiceMonthlyStats[]
 }
 
 model Manager {
@@ -89,6 +91,7 @@ model Stylist {
   reviews   Review[]
 
   favoritedBy StylistFavorite[]
+  dailyStats StylistDailyStats[]
 }
 
 model Customer {
@@ -128,6 +131,7 @@ model Service {
   updatedAt   DateTime @updatedAt
 
   bookingServices BookingService[]
+  monthlyStats      ServiceMonthlyStats[]
 }
 
 model Booking {
@@ -301,20 +305,61 @@ model Message {
   sender       User         @relation("MessageSender", fields: [senderId], references: [id])
 }
 
-model SalonStats {
-  id                String   @id @default(uuid())
-  salonId           String
-  date              DateTime
-  totalBookings     Int
-  completedBookings Int
-  cancelledBookings Int
-  totalRevenue      Int
-  newCustomers      Int
-  stylistCount      Int
-  averageRating     Float
-  reviewCount       Int
-  favoriteCount     Int
-  createdAt         DateTime @default(now())
+model SalonDailyStats {
+  id        String   @id @default(uuid())
+  salonId   String
+  date      DateTime
 
-  salon Salon @relation(fields: [salonId], references: [id])
+  totalBookings    Int @default(0)
+  completed        Int @default(0)
+  cancelled        Int @default(0)
+  cancelledEarly   Int @default(0)
+  cancelledDayOff  Int @default(0)
+  revenue          Int @default(0) 
+
+  salon     Salon   @relation(fields: [salonId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([salonId, date])
 }
+
+model StylistDailyStats {
+  id        String   @id @default(uuid())
+  stylistId String
+  salonId   String
+  date      DateTime
+
+  totalBookings    Int @default(0)
+  completed        Int @default(0)
+  cancelled        Int @default(0)
+  cancelledEarly   Int @default(0)
+  cancelledDayOff  Int @default(0)
+  revenue          Int @default(0)
+
+  stylist   Stylist @relation(fields: [stylistId], references: [id])
+  salon     Salon   @relation(fields: [salonId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([stylistId, date])
+}
+
+model ServiceMonthlyStats {
+  id         String   @id @default(uuid())
+  serviceId  String
+  salonId    String?
+  year       Int
+  month      Int
+  usedCount  Int             
+  isGlobal   Boolean
+  service Service @relation(fields: [serviceId], references: [id])
+  salon   Salon?  @relation(fields: [salonId], references: [id])
+
+  @@unique([serviceId, salonId, year, month])
+}
+
+
+
