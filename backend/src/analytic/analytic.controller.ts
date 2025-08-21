@@ -1,22 +1,25 @@
-import { Controller, Get, ForbiddenException } from "@nestjs/common";
+import { Controller, Get, ForbiddenException, Query } from "@nestjs/common";
 import { AnalyticService } from "./analytic.service";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { AnalyticsQueryDto } from "./dtos/analytic-request.dto";
 import { RoleName } from "../common/enums/role-name.enum";
+import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 
 @Controller("analytics")
-export class AnalyticsController {
+export class AnalyticController {
   constructor(private readonly analyticService: AnalyticService) {}
   @Get()
-  async getAnalytics(@CurrentUser() user: JwtPayload) {
+  async getAnalytics(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: AnalyticsQueryDto,
+  ) {
     if (user.role === RoleName.ADMIN) {
-      return this.analyticService.getAdminAnalytics(user.id);
+      return this.analyticService.getAdminAnalytics(user, query);
+    } else if (user.role === RoleName.MANAGER) {
+      return this.analyticService.getManagerAnalytics(user, query);
+    } else {
+      throw new ForbiddenException(ERROR_MESSAGES.ROLE.YOU_ARE_NOT_ADMIN);
     }
-
-    if (user.role === RoleName.MANAGER) {
-      return this.analyticService.getManagerAnalytics(user.id);
-    }
-
-    throw new ForbiddenException("Unauthorized");
   }
 }

@@ -34,6 +34,7 @@ export class StatsAggregationJob {
         stylist: true,
         salon: true,
         workSchedule: true,
+        services: true,
       },
     });
 
@@ -165,8 +166,8 @@ export class StatsAggregationJob {
 
   private buildStats(bookings: any[]) {
     let totalBookings = bookings.length;
-
-    let completed = bookings.filter((b) => b.status === "COMPLETED").length;
+    let completedBookings = bookings.filter((b) => b.status === "COMPLETED");
+    let completed = completedBookings.length;
     let cancelled = bookings.filter((b) => b.status === "CANCELLED").length;
     let cancelledEarly = bookings.filter(
       (b) => b.status === "CANCELLED_EARLY",
@@ -175,12 +176,17 @@ export class StatsAggregationJob {
       (b) => b.status === "CANCELLED_DAY_OFF",
     ).length;
 
+    let revenue = completedBookings.reduce((sum, b) => {
+      return sum + b.services.reduce((s, bs) => s + Number(bs.price ?? 0), 0);
+    }, 0);
+
     return {
       totalBookings,
       completed,
       cancelled,
       cancelledEarly,
       cancelledDayOff,
+      revenue,
     };
   }
 }
