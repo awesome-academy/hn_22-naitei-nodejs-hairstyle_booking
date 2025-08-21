@@ -3,6 +3,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CreateBookingDto } from "./dtos/create-booking.dto";
 import { GetBookingsQueryDto } from "./dtos/get-bookings-query.dto";
 import { UpdateBookingStatusDto } from "./dtos/update-booking-status.dto";
+import { CreateReviewDto } from "./dtos/create-review.dto";
 import {
   BookingResponseDto,
   BookingListResponseDto,
@@ -383,5 +384,62 @@ export class BookingService {
     throw new ForbiddenException(
       ERROR_MESSAGES.BOOKING.ROLE_NOT_ALLOWED_UPDATE_STATUS,
     );
+  }
+
+  async reviewBooking(
+    bookingId: string,
+    customerId: string,
+    dto: CreateReviewDto,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const booking = await tx.booking.findUnique({
+        where: { id: bookingId },
+      });
+
+      if (!booking) {
+        throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
+      }
+
+      if (booking.customerId !== customerId) {
+        throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
+      }
+
+      if (booking.status !== "COMPLETED") {
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.NOT_COMPLETED);
+      }
+
+      const existed = await tx.review.findUnique({
+        where: { bookingId },
+      });
+      if (existed) {
+        throw new BadRequestException(ERROR_MESSAGES.BOOKING.ALREADY_REVIEWED);
+      }
+
+      const review = await tx.review.create({
+        data: {
+          bookingId,
+          customerId,
+          stylistId: booking.stylistId,
+          rating: dto.rating,
+          content: dto.content,
+        },
+      });
+
+      const stats = await tx.review.aggregate({
+        where: { stylistId: booking.stylistId },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+
+      await tx.stylist.update({
+        where: { id: booking.stylistId },
+        data: {
+          rating: stats._avg.rating || 0,
+          ratingCount: stats._count.rating,
+        },
+      });
+
+      return review;
+    });
   }
 }

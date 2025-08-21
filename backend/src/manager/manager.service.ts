@@ -100,6 +100,10 @@ export class ManagerService {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
 
+    if (user.role.name !== RoleName.MANAGER.toString()) {
+      throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_MANAGER_ROLE);
+    }
+
     if (!user.manager) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
     }
