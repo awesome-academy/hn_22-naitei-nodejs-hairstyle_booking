@@ -13,4 +13,4 @@ export const SLOT_DURATION_MINUTES = 15;
 export const DAYS_VISIBLE = 7;
 
 // Số ngày lưu dữ liệu lịch trước khi xoá
-export const RETENTION_DAYS = 60;
+export const RETENTION_DAYS = 30;

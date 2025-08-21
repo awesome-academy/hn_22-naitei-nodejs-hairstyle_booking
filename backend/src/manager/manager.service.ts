@@ -95,42 +95,52 @@ export class ManagerService {
     if (!user) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
     }
+
     if (!user.isActive) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.USER_INACTIVE);
     }
+
     if (user.role.name !== RoleName.MANAGER.toString()) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.NOT_MANAGER_ROLE);
     }
+
     if (!user.manager) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.MANAGER_NOT_FOUND);
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException(ERROR_MESSAGES.AUTH.PASSWORD_INCORRECT);
     }
 
-    const { manager } = user;
+    return buildManagerResponse({
+      ...user.manager,
+      salon: user.manager.salon,
+      user,
+    });
+  }
+
+  async getByIdForAdmin(id: string): Promise<ManagerResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        role: true,
+        manager: { include: { salon: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+    }
+
+    if (!user.manager) {
+      throw new NotFoundException(ERROR_MESSAGES.MANAGER.NOT_FOUND);
+    }
 
     return buildManagerResponse({
-      salon: {
-        id: manager.salon.id,
-        name: manager.salon.name,
-      },
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        avatar: user.avatar,
-        gender: user.gender,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        role: {
-          name: user.role.name,
-          description: user.role.description ?? undefined,
-        },
-      },
+      ...user.manager,
+      salon: user.manager.salon,
+      user,
     });
   }
 

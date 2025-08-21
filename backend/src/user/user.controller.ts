@@ -14,7 +14,10 @@ import { RolesGuard } from "../common/guards/roles.guard";
 import { Roles } from "../common/decorators/roles.decorator";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
-import { CustomerListResponseDto } from "../customer/dtos/customer-response.dto";
+import {
+  CustomerListResponseDto,
+  CustomerResponseDto,
+} from "../customer/dtos/customer-response.dto";
 import {
   StylistListResponseDto,
   StylistResponseDto,
@@ -27,7 +30,10 @@ import {
 } from "../manager/dtos/manager-response.dto";
 import { CreateManagerDto } from "../manager/dtos/create-manager.dto";
 import { ManagerService } from "../manager/manager.service";
-import { UserListResponseDto } from "./dtos/user/user-response.dto";
+import {
+  UserListResponseDto,
+  UserResponseDto,
+} from "./dtos/user/user-response.dto";
 import {
   UpdateUserStatusDto,
   UpdateUserStatusResponseDto,
@@ -63,6 +69,21 @@ export class UserController {
       Number(limit),
       search,
     );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN", "MANAGER")
+  @Get(":id")
+  async findOne(
+    @CurrentUser() user: JwtPayload,
+    @Param("id") targetUserId: string,
+  ): Promise<
+    | CustomerResponseDto
+    | StylistResponseDto
+    | ManagerResponseDto
+    | UserResponseDto
+  > {
+    return this.userService.getUserDetailByViewer(user, targetUserId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

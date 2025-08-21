@@ -155,4 +155,34 @@ export class CustomerService {
       },
     };
   }
+
+  async getByIdForAdmin(id: string): Promise<CustomerResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        role: true,
+        customer: {
+          include: {
+            memberTier: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
+    }
+
+    if (!user.customer) {
+      throw new NotFoundException(ERROR_MESSAGES.CUSTOMER.NOT_FOUND);
+    }
+
+    return buildCustomerResponse({
+      ...user.customer,
+      totalCompleted: user.customer?.totalCompleted ?? 0,
+      totalCancelled: user.customer?.totalCancelled ?? 0,
+      totalSpending: user.customer?.totalSpending ?? 0,
+      user,
+    });
+  }
 }
