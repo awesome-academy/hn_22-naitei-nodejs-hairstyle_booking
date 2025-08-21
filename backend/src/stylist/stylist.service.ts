@@ -16,6 +16,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
+import { bootstrapWorkScheduleForStylist } from "./utils/bootstrap-workschedule";
 
 @Injectable()
 export class StylistService {
@@ -71,6 +72,8 @@ export class StylistService {
         salon: true,
       },
     });
+
+    await bootstrapWorkScheduleForStylist(this.prisma, stylist.id);
 
     return buildStylistResponse(stylist);
   }
