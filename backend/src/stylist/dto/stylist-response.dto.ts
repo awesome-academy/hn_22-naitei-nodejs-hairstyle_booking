@@ -1,7 +1,7 @@
 import { UserResponseDto } from "src/user/dtos/user/user-response.dto";
 import { PaginationDto } from "src/common/dtos/pagination.dto";
 
-export interface StylistResponseDto extends UserResponseDto {
+export class StylistResponseDto extends UserResponseDto {
   rating: number;
   ratingCount: number;
   salon: {
@@ -15,7 +15,7 @@ export class AuthStylistResponseDto {
   stylist: StylistResponseDto;
 }
 
-export interface StylistListResponseDto {
+export class StylistListResponseDto {
   data: StylistResponseDto[];
   pagination: PaginationDto;
 }

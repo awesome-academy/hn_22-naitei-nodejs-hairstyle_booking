@@ -44,7 +44,7 @@ export class BookingService {
 
       const services = await tx.service.findMany({
         where: { id: { in: dto.serviceIds } },
-        select: { duration: true, price: true },
+        select: { id: true, duration: true, price: true },
       });
 
       if (!services || services.length === 0) {
@@ -56,7 +56,13 @@ export class BookingService {
 
       if (dto.timeSlotIds.length < requiredSlots) {
         throw new BadRequestException(
-          `Please select at least ${requiredSlots} time slots for the chosen services.`, // NOTE: có thể dùng ERROR_MESSAGES.BOOKING.NOT_ENOUGH_TIMESLOTS
+          `Please select at least ${requiredSlots} time slots for the chosen services.`,
+        );
+      }
+
+      if (dto.timeSlotIds.length > requiredSlots) {
+        throw new BadRequestException(
+          `You selected too many time slots. Only ${requiredSlots} are needed for the chosen services.`,
         );
       }
 
@@ -98,7 +104,10 @@ export class BookingService {
           totalPrice,
           status: "PENDING",
           services: {
-            create: dto.serviceIds.map((serviceId) => ({ serviceId })),
+            create: services.map((s) => ({
+              serviceId: s.id,
+              price: s.price,
+            })),
           },
         },
       });
@@ -323,7 +332,7 @@ export class BookingService {
       throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
     }
 
-    if (user.role === "CUSTOMER") {
+    if (user.role === RoleName.CUSTOMER) {
       if (booking.customer.userId !== user.id) {
         throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
       }
