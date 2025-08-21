@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+// frontend/src/components/userManagement/CreateUserModal.jsx
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useSalons } from "../../hooks/useSalons";
 
 const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
-  const { salons } = useSalons();
+  const { salons, fetchSalons } = useSalons();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -12,9 +13,30 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
     password: "",
     phone: "",
     gender: "",
-    role: userRole === "MANAGER" ? "STYLIST" : "",
-    salonId: "", // For manager creation
+    role: "STYLIST",
+    salonId: "",
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchSalons();
+    }
+  }, [isOpen, fetchSalons]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        phone: "",
+        gender: "",
+        role: userRole === "MANAGER" ? "STYLIST" : "",
+        salonId: "",
+      });
+      setErrors({});
+    }
+  }, [isOpen, userRole]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,6 +44,14 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
       ...prev,
       [name]: value,
     }));
+
+    if (name === "role" && value !== "MANAGER") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        salonId: "",
+      }));
+    }
 
     if (errors[name]) {
       setErrors((prev) => ({
@@ -77,6 +107,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
     }
 
     setLoading(true);
+    setErrors({});
 
     try {
       const result = await onCreateUser(formData);
@@ -92,14 +123,24 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
           salonId: "",
         });
         setErrors({});
+        onClose(); 
       } else {
         if (typeof result.error === "string") {
           setErrors({ general: result.error });
+        } else if (typeof result.error === "object") {
+          setErrors(result.error);
+        } else {
+          setErrors({ general: "Failed to create user. Please try again." });
         }
       }
-    // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      setErrors({ general: "An unexpected error occurred" });
+      console.error("Create user error:", error);
+      setErrors({
+        general:
+          error.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred while creating user.",
+      });
     } finally {
       setLoading(false);
     }
@@ -109,6 +150,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
     if (userRole === "ADMIN") {
       return [
         { value: "", label: "Select Role" },
+        { value: "CUSTOMER", label: "Customer" },
         { value: "MANAGER", label: "Manager" },
         { value: "STYLIST", label: "Stylist" },
       ];
@@ -134,7 +176,38 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
               <div className="sm:flex sm:items-start">
                 <div className="w-full">
                   <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    Create New User
+                    {userRole === "ADMIN"
+                      ? "Create New User"
+                      : "Create New Stylist"}
+                  </h3>
+
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start">
+                      <svg
+                        className="w-5 h-5 text-blue-500 mt-0.5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <p className="text-sm text-blue-700">
+                        {userRole === "ADMIN"
+                          ? "As an administrator, you can create managers and stylists."
+                          : "As a manager, you can only create stylists for your salon."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    {userRole === "ADMIN"
+                      ? "Create Staff Account"
+                      : "Create New Stylist"}
                   </h3>
 
                   {errors.general && (
@@ -144,7 +217,6 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                   )}
 
                   <div className="space-y-4">
-                    {/* Full Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Full Name *
@@ -158,6 +230,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                           errors.fullName ? "border-red-300" : "border-gray-300"
                         }`}
                         placeholder="Enter full name"
+                        disabled={loading}
                       />
                       {errors.fullName && (
                         <p className="mt-1 text-sm text-red-600">
@@ -166,7 +239,6 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                       )}
                     </div>
 
-                    {/* Email */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Email *
@@ -180,6 +252,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                           errors.email ? "border-red-300" : "border-gray-300"
                         }`}
                         placeholder="Enter email address"
+                        disabled={loading}
                       />
                       {errors.email && (
                         <p className="mt-1 text-sm text-red-600">
@@ -188,7 +261,6 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                       )}
                     </div>
 
-                    {/* Password */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Password *
@@ -202,6 +274,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                           errors.password ? "border-red-300" : "border-gray-300"
                         }`}
                         placeholder="Enter password (min 6 characters)"
+                        disabled={loading}
                       />
                       {errors.password && (
                         <p className="mt-1 text-sm text-red-600">
@@ -210,7 +283,6 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                       )}
                     </div>
 
-                    {/* Phone */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Phone Number
@@ -224,6 +296,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                           errors.phone ? "border-red-300" : "border-gray-300"
                         }`}
                         placeholder="+84912345678"
+                        disabled={loading}
                       />
                       {errors.phone && (
                         <p className="mt-1 text-sm text-red-600">
@@ -232,7 +305,6 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                       )}
                     </div>
 
-                    {/* Gender */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Gender
@@ -242,6 +314,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         value={formData.gender}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={loading}
                       >
                         <option value="">Select gender</option>
                         <option value="male">Male</option>
@@ -250,7 +323,6 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                       </select>
                     </div>
 
-                    {/* Role */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Role *
@@ -262,7 +334,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           errors.role ? "border-red-300" : "border-gray-300"
                         }`}
-                        disabled={userRole === "MANAGER"}
+                        disabled={userRole === "MANAGER" || loading}
                       >
                         {getRoleOptions().map((option) => (
                           <option key={option.value} value={option.value}>
@@ -277,11 +349,10 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                       )}
                     </div>
 
-                    {/* Salon Selection (for Manager role) */}
                     {formData.role === "MANAGER" && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Salon *
+                          Assign to Salon *
                         </label>
                         <select
                           name="salonId"
@@ -292,17 +363,24 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                               ? "border-red-300"
                               : "border-gray-300"
                           }`}
+                          disabled={loading}
                         >
-                          <option value="">Select salon</option>
+                          <option value="">Select salon to manage</option>
                           {salons.map((salon) => (
                             <option key={salon.id} value={salon.id}>
-                              {salon.name}
+                              {salon.name} - {salon.address}
                             </option>
                           ))}
                         </select>
                         {errors.salonId && (
                           <p className="mt-1 text-sm text-red-600">
                             {errors.salonId}
+                          </p>
+                        )}
+
+                        {salons.length === 0 && (
+                          <p className="mt-1 text-sm text-gray-500">
+                            Loading salons...
                           </p>
                         )}
                       </div>
@@ -324,7 +402,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                     Creating...
                   </>
                 ) : (
-                  "Create User"
+                  `Create ${formData.role || "User"}`
                 )}
               </button>
               <button
@@ -342,6 +420,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
     </div>
   );
 };
+
 CreateUserModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,

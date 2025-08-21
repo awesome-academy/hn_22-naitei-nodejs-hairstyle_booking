@@ -42,7 +42,7 @@ export const useAuth = () => {
       case "ADMIN":
         return "/user-management";
       case "MANAGER":
-        return "/manager-dashboard";
+        return "/manager/dashboard";
       case "STYLIST":
         return "/stylist-dashboard";
       case "CUSTOMER":
