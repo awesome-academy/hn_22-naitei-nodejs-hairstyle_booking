@@ -12,7 +12,10 @@ import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import ForgotPassword from "./components/auth/ForgotPassword";
 import ServiceManagementPage from "./pages/admin/ServiceManagementPage";
-
+import ManagerDashboardPage from "./pages/manager/ManagerDashboardPage";
+import ManagerStylistManagementPage from "./pages/manager/ManagerStylistManagementPage";
+import ManagerBookingManagementPage from "./pages/manager/ManagerBookingManagementPage";
+import ManagerDayOffManagementPage from "./pages/manager/ManagerDayOffManagementPage";
 function App() {
   return (
     <BrowserRouter>
@@ -30,6 +33,11 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          <Route path="/manager/dashboard" element={<ManagerDashboardPage />} />
+          <Route path="/manager/stylists" element={<ManagerStylistManagementPage />} />
+          <Route path="/manager/bookings" element={<ManagerBookingManagementPage />} />
+          <Route path="/manager/dayoff" element={<ManagerDayOffManagementPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -17,6 +17,7 @@ const UserManagement = () => {
     createManager,
     updateUserStatus,
   } = useUsers();
+
   const [filters, setFilters] = useState({
     role: "",
     search: "",
@@ -25,21 +26,34 @@ const UserManagement = () => {
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [userRole, setUserRole] = useState("");
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
     setUserRole(role);
+
+    if (role === "MANAGER") {
+      setFilters((prev) => ({
+        ...prev,
+        role: "STYLIST",
+      }));
+    }
   }, []);
 
   useEffect(() => {
     fetchUsers(filters);
   }, [fetchUsers, filters]);
 
+  const showMessage = useCallback((msg) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(null), 3000);
+  }, []);
+
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
-      page: 1, 
+      page: 1,
     }));
   }, []);
 
@@ -53,18 +67,27 @@ const UserManagement = () => {
 
       if (userData.role === "STYLIST") {
         result = await createStylist(userData);
-      } else if (userData.role === "MANAGER") {
+      } else if (userData.role === "MANAGER" && userRole === "ADMIN") {
         result = await createManager(userData);
+      } else {
+        return {
+          success: false,
+          error: "You don't have permission to create this role",
+        };
       }
 
       if (result.success) {
         setIsCreateModalOpen(false);
         fetchUsers(filters);
+        showMessage({
+          type: "success",
+          text: `${userData.role.toLowerCase()} created successfully!`,
+        });
       }
 
       return result;
     },
-    [createStylist, createManager, fetchUsers, filters]
+    [createStylist, createManager, fetchUsers, filters, userRole, showMessage]
   );
 
   const handleStatusChange = useCallback(
@@ -73,15 +96,58 @@ const UserManagement = () => {
 
       if (result.success) {
         fetchUsers(filters);
+        showMessage({
+          type: "success",
+          text: `User ${isActive ? "activated" : "deactivated"} successfully!`,
+        });
+      } else {
+        showMessage({
+          type: "error",
+          text: result.error || "Failed to update user status",
+        });
       }
 
       return result;
     },
-    [updateUserStatus, fetchUsers, filters]
+    [updateUserStatus, fetchUsers, filters, showMessage]
   );
 
   const canCreateManager = userRole === "ADMIN";
   const canCreateStylist = userRole === "ADMIN" || userRole === "MANAGER";
+  const canCreateAnyUser = canCreateManager || canCreateStylist;
+
+  const getPageTitle = () => {
+    switch (userRole) {
+      case "ADMIN":
+        return "User Management";
+      case "MANAGER":
+        return "Stylist Management";
+      default:
+        return "User Management";
+    }
+  };
+
+  const getPageSubtitle = () => {
+    switch (userRole) {
+      case "ADMIN":
+        return "Manage staff accounts - create managers";
+      case "MANAGER":
+        return "Manage stylists in your salon";
+      default:
+        return "Manage users in the system";
+    }
+  };
+
+  const getCreateButtonText = () => {
+    switch (userRole) {
+      case "ADMIN":
+        return "Create Manager";
+      case "MANAGER":
+        return "Create Stylist";
+      default:
+        return "Create User";
+    }
+  };
 
   if (loading && users.length === 0) {
     return <LoadingSpinner />;
@@ -89,19 +155,57 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
+      {message && (
+        <div
+          className={`px-4 py-3 rounded-lg flex items-center ${
+            message.type === "success"
+              ? "bg-green-50 border border-green-200 text-green-700"
+              : "bg-red-50 border border-red-200 text-red-700"
+          }`}
+        >
+          <svg
+            className={`w-5 h-5 mr-3 flex-shrink-0 ${
+              message.type === "success" ? "text-green-500" : "text-red-500"
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {message.type === "success" ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            )}
+          </svg>
+          {message.text}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600 mt-1">
-            Manage{" "}
-            {userRole === "ADMIN" ? "all users" : "stylists in your salon"}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
+          <p className="text-gray-600 mt-1">{getPageSubtitle()}</p>
+          {userRole === "MANAGER" && (
+            <p className="text-sm text-gray-500 mt-1">
+              Total: {pagination.totalItems} stylists in your salon
+            </p>
+          )}
         </div>
 
-        {(canCreateManager || canCreateStylist) && (
+        {canCreateAnyUser && (
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
           >
             <svg
               className="w-5 h-5"
@@ -116,9 +220,39 @@ const UserManagement = () => {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            Create User
+            {getCreateButtonText()}
           </button>
         )}
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start">
+          <svg
+            className="w-5 h-5 text-blue-500 mt-0.5 mr-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h3 className="text-sm font-medium text-blue-800">
+              {userRole === "ADMIN"
+                ? "Administrator Permissions"
+                : "Manager Permissions"}
+            </h3>
+            <p className="text-sm text-blue-700 mt-1">
+              {userRole === "ADMIN"
+                ? "You can create and manage managers and stylists. Customers register themselves through the public registration form."
+                : "You can create and manage stylists within your assigned salon only."}
+            </p>
+          </div>
+        </div>
       </div>
 
       <UserFilters

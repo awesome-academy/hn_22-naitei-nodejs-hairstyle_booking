@@ -22,11 +22,15 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
         const userRole = localStorage.getItem("userRole");
+        const fullName = localStorage.getItem("userFullName");
+        const email = localStorage.getItem("userEmail");
 
         if (token && userId && userRole) {
           setUser({
             id: userId,
             role: userRole,
+            fullName: fullName,
+            email: email
           });
           setIsAuthenticated(true);
         }
@@ -35,6 +39,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
         localStorage.removeItem("userRole");
+        localStorage.removeItem("userFullname");
+        localStorage.removeItem("userEmail")
       } finally {
         setLoading(false);
       }

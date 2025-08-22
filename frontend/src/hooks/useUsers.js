@@ -1,4 +1,3 @@
-// frontend/src/hooks/useUsers.js
 import { useState, useCallback } from "react";
 import { userApi } from "../api/services/userApi";
 

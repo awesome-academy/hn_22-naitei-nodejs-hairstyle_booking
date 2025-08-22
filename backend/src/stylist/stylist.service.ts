@@ -333,28 +333,43 @@ export class StylistService {
     const { search = "", limit = 20, page = 1 } = query;
     const skip = (page - 1) * limit;
 
-    const whereCondition = {
+    const baseWhere = {
       salonId: manager.salonId,
-      user: {
-        OR: [
-          { name: { contains: search, mode: "insensitive" } },
-          { email: { contains: search, mode: "insensitive" } },
-        ],
-      },
     };
 
-    const [stylists, total] = await Promise.all([
-      this.prisma.stylist.findMany({
-        where: whereCondition,
-        skip,
-        take: limit,
-        include: {
-          user: { include: { role: true } },
-          salon: true,
-        },
-      }),
-      this.prisma.stylist.count({ where: whereCondition }),
-    ]);
+    let allStylists = await this.prisma.stylist.findMany({
+      where: baseWhere,
+      include: {
+        user: { include: { role: true } },
+        salon: true,
+      },
+      orderBy: [
+        { rating: "desc" },
+        { ratingCount: "desc" },
+        { createdAt: "desc" },
+      ],
+    });
+
+    if (search && search.trim()) {
+      const searchTerm = search.trim().toLowerCase();
+
+      console.log("🔍 Manager stylist search with JS toLowerCase:", {
+        managerId,
+        originalSearch: search.trim(),
+        searchTerm,
+        totalStylists: allStylists.length,
+      });
+
+      allStylists = allStylists.filter((stylist) => {
+        const fullName = stylist.user.fullName?.toLowerCase() || "";
+        const email = stylist.user.email?.toLowerCase() || "";
+
+        return fullName.includes(searchTerm) || email.includes(searchTerm);
+      });
+    }
+
+    const total = allStylists.length;
+    const stylists = allStylists.slice(skip, skip + limit);
 
     return {
       data: stylists.map((stylist) => buildStylistResponse(stylist)),
