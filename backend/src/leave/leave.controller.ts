@@ -26,7 +26,7 @@ export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
   @UseGuards(RolesGuard)
-  @Roles(RoleName.STYLIST, RoleName.MANAGER, RoleName.ADMIN)
+  @Roles(RoleName.STYLIST, RoleName.MANAGER)
   @Get()
   async getDayOffRequests(
     @CurrentUser() user: JwtPayload,
