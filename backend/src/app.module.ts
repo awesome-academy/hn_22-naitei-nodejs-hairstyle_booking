@@ -18,7 +18,8 @@ import { BookingModule } from "./booking/booking.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { WorkSchedulesJob } from "./jobs/work-schedules.job";
 import { TimeScheduleModule } from "./time-schedule/time-schedule.module";
-import { AnalyticModule } from './analytic/analytic.module';
+import { AnalyticModule } from "./analytic/analytic.module";
+import { LeaveModule } from "./leave/leave.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AnalyticModule } from './analytic/analytic.module';
     BookingModule,
     TimeScheduleModule,
     AnalyticModule,
+    LeaveModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,4 +1,3 @@
-// frontend/src/components/userManagement/UserManagement.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useUsers } from "../../hooks/useUsers";
 import UserFilters from "./UserFilters";
@@ -131,7 +130,7 @@ const UserManagement = () => {
   const getPageSubtitle = () => {
     switch (userRole) {
       case "ADMIN":
-        return "Manage staff accounts - create managers and stylists";
+        return "Manage staff accounts - create managers";
       case "MANAGER":
         return "Manage stylists in your salon";
       default:
@@ -142,7 +141,7 @@ const UserManagement = () => {
   const getCreateButtonText = () => {
     switch (userRole) {
       case "ADMIN":
-        return "Create User";
+        return "Create Manager";
       case "MANAGER":
         return "Create Stylist";
       default:

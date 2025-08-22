@@ -29,12 +29,16 @@ export const useAuth = () => {
     localStorage.setItem("token", token);
     localStorage.setItem("userId", user.id);
     localStorage.setItem("userRole", user.role?.name || user.role);
+    localStorage.setItem("userFullName", user.fullName);
+    localStorage.setItem("userEmail", user.email);
   }, []);
 
   const clearAuthData = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("userFullName");
+    localStorage.removeItem("userEmail");
   }, []);
 
   const getNavigationPath = useCallback((userRole) => {

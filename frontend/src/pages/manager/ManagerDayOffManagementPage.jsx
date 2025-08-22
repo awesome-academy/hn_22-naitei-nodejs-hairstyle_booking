@@ -1,4 +1,3 @@
-// frontend/src/pages/manager/ManagerDayOffManagementPage.jsx
 import React from "react";
 import AdminLayout from "../../components/adminDashboard/AdminLayout";
 import ManagerDayOffManagement from "../../components/managerDayOff/ManagerDayOffManagement";

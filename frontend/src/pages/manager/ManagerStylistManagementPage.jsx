@@ -1,4 +1,3 @@
-// frontend/src/pages/manager/ManagerStylistManagementPage.jsx
 import React from "react";
 import AdminLayout from "../../components/adminDashboard/AdminLayout";
 import UserManagement from "../../components/userManagement/UserManagement";

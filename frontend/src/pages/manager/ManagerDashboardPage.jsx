@@ -1,4 +1,3 @@
-// frontend/src/pages/manager/ManagerDashboardPage.jsx
 import React from "react";
 import AdminLayout from "../../components/adminDashboard/AdminLayout";
 import ManagerDashboard from "../../components/managerDashboard/ManagerDashboard";

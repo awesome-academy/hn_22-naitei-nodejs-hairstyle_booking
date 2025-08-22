@@ -1,4 +1,3 @@
-// frontend/src/components/adminDashboard/AdminHeader.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuthContext } from "../../contexts/AuthContext";
@@ -110,7 +109,7 @@ const AdminHeader = () => {
                       {user?.fullName || "Admin User"}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {user?.role?.name || "ADMIN"}
+                      {user?.role || "ADMIN"}
                     </div>
                   </div>
 
@@ -159,7 +158,7 @@ const AdminHeader = () => {
                           {user?.email || "admin@example.com"}
                         </div>
                         <div className="text-xs text-gray-500 font-medium">
-                          {user?.role?.name || "ADMIN"}
+                          {user?.role || "ADMIN"}
                         </div>
                       </div>
                     </div>

@@ -1,17 +1,7 @@
-// frontend/src/components/managerDashboard/ManagerWelcomeCard.jsx
 import React from "react";
 import PropTypes from "prop-types";
 
 const ManagerWelcomeCard = ({ salonInfo }) => {
-  const getCurrentTime = () =>
-    new Date().toLocaleString("vi-VN", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
 
   return (
     <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
@@ -22,7 +12,7 @@ const ManagerWelcomeCard = ({ salonInfo }) => {
           </h2>
           <p className="text-blue-100 mb-1">{salonInfo.address}</p>
           <p className="text-blue-200 text-sm">
-            Manage your salon operations efficiently • {getCurrentTime()}
+            Manage your salon operations efficiently
           </p>
         </div>
         <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">

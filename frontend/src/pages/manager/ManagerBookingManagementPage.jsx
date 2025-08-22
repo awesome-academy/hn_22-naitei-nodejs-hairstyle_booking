@@ -1,4 +1,3 @@
-// frontend/src/pages/manager/ManagerBookingManagementPage.jsx
 import React from "react";
 import AdminLayout from "../../components/adminDashboard/AdminLayout";
 import ManagerBookingManagement from "../../components/managerBooking/ManagerBookingManagement";

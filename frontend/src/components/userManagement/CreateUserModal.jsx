@@ -1,4 +1,3 @@
-// frontend/src/components/userManagement/CreateUserModal.jsx
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useSalons } from "../../hooks/useSalons";
@@ -13,7 +12,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
     password: "",
     phone: "",
     gender: "",
-    role: "STYLIST",
+    role: "MANAGER",
     salonId: "",
   });
 
@@ -31,7 +30,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
         password: "",
         phone: "",
         gender: "",
-        role: userRole === "MANAGER" ? "STYLIST" : "",
+        role: userRole === "ADMIN" ? "MANAGER" : "STYLIST",
         salonId: "",
       });
       setErrors({});
@@ -57,6 +56,13 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
+      }));
+    }
+
+    if (errors.general) {
+      setErrors((prev) => ({
+        ...prev,
+        general: "",
       }));
     }
   };
@@ -96,18 +102,110 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
     }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
+  };
+
+  const mapBackendErrorsToFields = (errorData) => {
+    const mappedErrors = {};
+
+    if (typeof errorData === "string") {
+      const errorMessage = errorData.toLowerCase();
+
+      if (
+        errorMessage.includes("phone") ||
+        errorMessage.includes("phone number")
+      ) {
+        mappedErrors.phone = errorData;
+      } else if (errorMessage.includes("email")) {
+        mappedErrors.email = errorData;
+      } else if (errorMessage.includes("password")) {
+        mappedErrors.password = errorData;
+      } else if (
+        errorMessage.includes("name") ||
+        errorMessage.includes("fullname")
+      ) {
+        mappedErrors.fullName = errorData;
+      } else if (errorMessage.includes("salon")) {
+        mappedErrors.salonId = errorData;
+      } else if (errorMessage.includes("role")) {
+        mappedErrors.role = errorData;
+      } else {
+        mappedErrors.general = errorData;
+      }
+    } else if (Array.isArray(errorData)) {
+      errorData.forEach((error) => {
+        const errorMessage = error.toLowerCase();
+
+        if (
+          errorMessage.includes("phone") ||
+          errorMessage.includes("phone number")
+        ) {
+          mappedErrors.phone = error;
+        } else if (errorMessage.includes("email")) {
+          mappedErrors.email = error;
+        } else if (errorMessage.includes("password")) {
+          mappedErrors.password = error;
+        } else if (
+          errorMessage.includes("name") ||
+          errorMessage.includes("fullname")
+        ) {
+          mappedErrors.fullName = error;
+        } else if (errorMessage.includes("salon")) {
+          mappedErrors.salonId = error;
+        } else if (errorMessage.includes("role")) {
+          mappedErrors.role = error;
+        } else {
+          mappedErrors.general = mappedErrors.general
+            ? `${mappedErrors.general}; ${error}`
+            : error;
+        }
+      });
+    } else if (typeof errorData === "object" && errorData !== null) {
+      Object.keys(errorData).forEach((key) => {
+        const normalizedKey = key.toLowerCase();
+
+        if (normalizedKey === "phone" || normalizedKey === "phonenumber") {
+          mappedErrors.phone = errorData[key];
+        } else if (normalizedKey === "email") {
+          mappedErrors.email = errorData[key];
+        } else if (normalizedKey === "password") {
+          mappedErrors.password = errorData[key];
+        } else if (normalizedKey === "fullname" || normalizedKey === "name") {
+          mappedErrors.fullName = errorData[key];
+        } else if (normalizedKey === "salon" || normalizedKey === "salonid") {
+          mappedErrors.salonId = errorData[key];
+        } else if (normalizedKey === "role") {
+          mappedErrors.role = errorData[key];
+        } else {
+          mappedErrors[key] = errorData[key];
+        }
+      });
+    } else {
+      mappedErrors.general = "An unexpected error occurred. Please try again.";
+    }
+
+    return mappedErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    console.log("📝 Form submitted, validating...");
+    console.log("📝 Current form data:", formData);
+
+    setErrors({});
+
+    const isValid = validateForm();
+
+    if (!isValid) {
+      console.log("❌ Validation failed, stopping submission");
       return;
     }
 
+    console.log("✅ Validation passed, proceeding with submission");
+
     setLoading(true);
-    setErrors({});
 
     try {
       const result = await onCreateUser(formData);
@@ -119,28 +217,36 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
           password: "",
           phone: "",
           gender: "",
-          role: userRole === "MANAGER" ? "STYLIST" : "",
+          role: userRole === "ADMIN" ? "MANAGER" : "STYLIST",
           salonId: "",
         });
         setErrors({});
-        onClose(); 
+        onClose();
       } else {
-        if (typeof result.error === "string") {
-          setErrors({ general: result.error });
-        } else if (typeof result.error === "object") {
-          setErrors(result.error);
-        } else {
-          setErrors({ general: "Failed to create user. Please try again." });
-        }
+        console.log("❌ Create user error result:", result);
+
+        const mappedErrors = mapBackendErrorsToFields(result.error);
+        setErrors(mappedErrors);
       }
     } catch (error) {
-      console.error("Create user error:", error);
-      setErrors({
-        general:
-          error.response?.data?.message ||
-          error.message ||
-          "An unexpected error occurred while creating user.",
-      });
+      console.error("❌ Create user exception:", error);
+
+      let errorToProcess = null;
+
+      if (error.response?.data?.message) {
+        errorToProcess = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorToProcess = error.response.data.error;
+      } else if (error.response?.data?.errors) {
+        errorToProcess = error.response.data.errors;
+      } else if (error.message) {
+        errorToProcess = error.message;
+      } else {
+        errorToProcess = `An unexpected error occurred while creating ${formData.role.toLowerCase()}.`;
+      }
+
+      const mappedErrors = mapBackendErrorsToFields(errorToProcess);
+      setErrors(mappedErrors);
     } finally {
       setLoading(false);
     }
@@ -148,19 +254,34 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
 
   const getRoleOptions = () => {
     if (userRole === "ADMIN") {
-      return [
-        { value: "", label: "Select Role" },
-        { value: "CUSTOMER", label: "Customer" },
-        { value: "MANAGER", label: "Manager" },
-        { value: "STYLIST", label: "Stylist" },
-      ];
+      return [{ value: "MANAGER", label: "Manager" }];
     } else if (userRole === "MANAGER") {
       return [{ value: "STYLIST", label: "Stylist" }];
     }
     return [];
   };
 
+  const getModalTitle = () => {
+    if (userRole === "ADMIN") {
+      return "Create New Manager";
+    } else if (userRole === "MANAGER") {
+      return "Create New Stylist";
+    }
+    return "Create New User";
+  };
+
+  const getInfoMessage = () => {
+    if (userRole === "ADMIN") {
+      return "As an administrator, you can create managers and assign them to salons.";
+    } else if (userRole === "MANAGER") {
+      return "As a manager, you can create stylists for your salon.";
+    }
+    return "Create a new user account.";
+  };
+
   if (!isOpen) return null;
+
+  const roleOptions = getRoleOptions();
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -176,15 +297,13 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
               <div className="sm:flex sm:items-start">
                 <div className="w-full">
                   <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    {userRole === "ADMIN"
-                      ? "Create New User"
-                      : "Create New Stylist"}
+                    {getModalTitle()}
                   </h3>
 
                   <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start">
                       <svg
-                        className="w-5 h-5 text-blue-500 mt-0.5 mr-2"
+                        className="w-5 h-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -197,22 +316,31 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         />
                       </svg>
                       <p className="text-sm text-blue-700">
-                        {userRole === "ADMIN"
-                          ? "As an administrator, you can create managers and stylists."
-                          : "As a manager, you can only create stylists for your salon."}
+                        {getInfoMessage()}
                       </p>
                     </div>
                   </div>
 
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    {userRole === "ADMIN"
-                      ? "Create Staff Account"
-                      : "Create New Stylist"}
-                  </h3>
-
                   {errors.general && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-                      {errors.general}
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-start">
+                        <svg
+                          className="w-5 h-5 text-red-500 mt-0.5 mr-2 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <p className="text-sm text-red-700 font-medium">
+                          {errors.general}
+                        </p>
+                      </div>
                     </div>
                   )}
 
@@ -226,16 +354,33 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.fullName ? "border-red-300" : "border-gray-300"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                          errors.fullName
+                            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                            : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                         }`}
                         placeholder="Enter full name"
                         disabled={loading}
                       />
                       {errors.fullName && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.fullName}
-                        </p>
+                        <div className="mt-1 flex items-start">
+                          <svg
+                            className="w-4 h-4 text-red-500 mt-0.5 mr-1 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">
+                            {errors.fullName}
+                          </p>
+                        </div>
                       )}
                     </div>
 
@@ -248,16 +393,33 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.email ? "border-red-300" : "border-gray-300"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                          errors.email
+                            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                            : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                         }`}
                         placeholder="Enter email address"
                         disabled={loading}
                       />
                       {errors.email && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.email}
-                        </p>
+                        <div className="mt-1 flex items-start">
+                          <svg
+                            className="w-4 h-4 text-red-500 mt-0.5 mr-1 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">
+                            {errors.email}
+                          </p>
+                        </div>
                       )}
                     </div>
 
@@ -270,16 +432,33 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.password ? "border-red-300" : "border-gray-300"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                          errors.password
+                            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                            : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                         }`}
                         placeholder="Enter password (min 6 characters)"
                         disabled={loading}
                       />
                       {errors.password && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.password}
-                        </p>
+                        <div className="mt-1 flex items-start">
+                          <svg
+                            className="w-4 h-4 text-red-500 mt-0.5 mr-1 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">
+                            {errors.password}
+                          </p>
+                        </div>
                       )}
                     </div>
 
@@ -292,17 +471,38 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.phone ? "border-red-300" : "border-gray-300"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                          errors.phone
+                            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                            : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                         }`}
                         placeholder="+84912345678"
                         disabled={loading}
                       />
                       {errors.phone && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.phone}
-                        </p>
+                        <div className="mt-1 flex items-start">
+                          <svg
+                            className="w-4 h-4 text-red-500 mt-0.5 mr-1 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">
+                            {errors.phone}
+                          </p>
+                        </div>
                       )}
+                      <p className="mt-1 text-xs text-gray-500">
+                        Enter international phone number with country code
+                        (e.g., +84912345678)
+                      </p>
                     </div>
 
                     <div>
@@ -313,13 +513,13 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         name="gender"
                         value={formData.gender}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                         disabled={loading}
                       >
                         <option value="">Select gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
                       </select>
                     </div>
 
@@ -331,22 +531,48 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                         name="role"
                         value={formData.role}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.role ? "border-red-300" : "border-gray-300"
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                          errors.role
+                            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                            : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                         }`}
-                        disabled={userRole === "MANAGER" || loading}
+                        disabled={loading || roleOptions.length <= 1}
                       >
-                        {getRoleOptions().map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
+                        {roleOptions.length > 0 ? (
+                          roleOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">No role available</option>
+                        )}
                       </select>
                       {errors.role && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.role}
-                        </p>
+                        <div className="mt-1 flex items-start">
+                          <svg
+                            className="w-4 h-4 text-red-500 mt-0.5 mr-1 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">
+                            {errors.role}
+                          </p>
+                        </div>
                       )}
+                      <p className="mt-1 text-xs text-gray-500">
+                        {userRole === "ADMIN"
+                          ? "You can only create managers"
+                          : "You can only create stylists for your salon"}
+                      </p>
                     </div>
 
                     {formData.role === "MANAGER" && (
@@ -358,10 +584,10 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                           name="salonId"
                           value={formData.salonId}
                           onChange={handleInputChange}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                             errors.salonId
-                              ? "border-red-300"
-                              : "border-gray-300"
+                              ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                              : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                           }`}
                           disabled={loading}
                         >
@@ -373,9 +599,24 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                           ))}
                         </select>
                         {errors.salonId && (
-                          <p className="mt-1 text-sm text-red-600">
-                            {errors.salonId}
-                          </p>
+                          <div className="mt-1 flex items-start">
+                            <svg
+                              className="w-4 h-4 text-red-500 mt-0.5 mr-1 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <p className="text-sm text-red-600 font-medium">
+                              {errors.salonId}
+                            </p>
+                          </div>
                         )}
 
                         {salons.length === 0 && (
@@ -394,7 +635,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (
                   <>
@@ -402,14 +643,16 @@ const CreateUserModal = ({ isOpen, onClose, onCreateUser, userRole }) => {
                     Creating...
                   </>
                 ) : (
-                  `Create ${formData.role || "User"}`
+                  `Create ${
+                    formData.role === "MANAGER" ? "Manager" : "Stylist"
+                  }`
                 )}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
               >
                 Cancel
               </button>

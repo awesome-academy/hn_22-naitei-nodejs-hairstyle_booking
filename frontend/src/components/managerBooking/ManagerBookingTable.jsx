@@ -1,4 +1,3 @@
-// frontend/src/components/managerBooking/ManagerBookingTable.jsx
 import React from "react";
 import PropTypes from "prop-types";
 import Pagination from "../common/Pagination";

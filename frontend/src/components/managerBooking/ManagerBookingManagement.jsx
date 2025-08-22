@@ -1,12 +1,19 @@
-// frontend/src/components/managerBooking/ManagerBookingManagement.jsx
 import React, { useState, useEffect } from "react";
 import ManagerBookingFilters from "./ManagerBookingFilters";
 import ManagerBookingTable from "./ManagerBookingTable";
 import LoadingSpinner from "../common/LoadingSpinner";
+import { useBookings } from "../../hooks/useBookings";
 
 const ManagerBookingManagement = () => {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    bookings,
+    loading,
+    error,
+    pagination,
+    fetchBookings,
+    updateBookingStatus,
+  } = useBookings();
+
   const [filters, setFilters] = useState({
     status: "",
     date: "",
@@ -14,60 +21,15 @@ const ManagerBookingManagement = () => {
     page: 1,
     limit: 10,
   });
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 10,
-  });
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    fetchBookings();
-  }, [filters]);
+    fetchBookings(filters);
+  }, [filters, fetchBookings]);
 
-  const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      // TODO: Replace with real API call
-      setTimeout(() => {
-        const mockBookings = [
-          {
-            id: 1,
-            customerName: "Nguyễn Văn A",
-            customerPhone: "0901234567",
-            stylistName: "Trần Thị B",
-            service: "Hair Cut & Style",
-            date: "2024-01-15",
-            time: "09:00",
-            status: "CONFIRMED",
-            totalAmount: 250000,
-          },
-          {
-            id: 2,
-            customerName: "Lê Thị C",
-            customerPhone: "0902345678",
-            stylistName: "Phạm Văn D",
-            service: "Hair Coloring",
-            date: "2024-01-15",
-            time: "10:30",
-            status: "PENDING",
-            totalAmount: 500000,
-          },
-        ];
-
-        setBookings(mockBookings);
-        setPagination({
-          currentPage: 1,
-          totalPages: 1,
-          totalItems: mockBookings.length,
-          itemsPerPage: 10,
-        });
-        setLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-      setLoading(false);
-    }
+  const showMessage = (msg) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(null), 3000);
   };
 
   const handleFiltersChange = (newFilters) => {
@@ -83,17 +45,18 @@ const ManagerBookingManagement = () => {
   };
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
-    try {
-      // TODO: Implement API call to update booking status
-      setBookings(prev =>
-        prev.map(booking =>
-          booking.id === bookingId
-            ? { ...booking, status: newStatus }
-            : booking
-        )
-      );
-    } catch (error) {
-      console.error("Error updating booking status:", error);
+    const result = await updateBookingStatus(bookingId, newStatus);
+    
+    if (result.success) {
+      showMessage({
+        type: "success",
+        text: `Booking status updated to ${newStatus.toLowerCase()} successfully!`
+      });
+    } else {
+      showMessage({
+        type: "error",
+        text: result.error
+      });
     }
   };
 
@@ -103,13 +66,51 @@ const ManagerBookingManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
+      {/* Message Display */}
+      {message && (
+        <div className={`px-4 py-3 rounded-lg flex items-center ${
+          message.type === "success"
+            ? "bg-green-50 border border-green-200 text-green-700"
+            : "bg-red-50 border border-red-200 text-red-700"
+        }`}>
+          <svg className={`w-5 h-5 mr-3 flex-shrink-0 ${
+            message.type === "success" ? "text-green-500" : "text-red-500"
+          }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {message.type === "success" ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            )}
+          </svg>
+          {message.text}
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-red-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Error Loading Bookings</h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <button
+                onClick={() => fetchBookings(filters)}
+                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ManagerBookingFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />
 
-      {/* Bookings Table */}
       <ManagerBookingTable
         bookings={bookings}
         pagination={pagination}

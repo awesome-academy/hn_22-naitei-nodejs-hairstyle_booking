@@ -1,8 +1,7 @@
-// frontend/src/components/managerDashboard/ManagerStats.jsx
 import React from "react";
 import PropTypes from "prop-types";
 
-const ManagerStats = ({ stats }) => {
+const ManagerStats = ({ stats, analyticsData }) => {
   const statItems = [
     {
       key: "totalStylists",
@@ -28,10 +27,10 @@ const ManagerStats = ({ stats }) => {
       textColor: "text-blue-600",
     },
     {
-      key: "todayBookings",
-      label: "Today's Bookings",
-      value: stats.todayBookings,
-      subtext: "Scheduled appointments",
+      key: "totalBookings",
+      label: "Total Bookings",
+      value: stats.totalBookings,
+      subtext: "All bookings (period)",
       icon: (
         <svg
           className="w-6 h-6 text-white"
@@ -51,10 +50,10 @@ const ManagerStats = ({ stats }) => {
       textColor: "text-green-600",
     },
     {
-      key: "pendingDayOffs",
-      label: "Pending Day Offs",
-      value: stats.pendingDayOffs,
-      subtext: "Awaiting approval",
+      key: "completedBookings",
+      label: "Completed Bookings",
+      value: stats.completedBookings,
+      subtext: "Successfully completed",
       icon: (
         <svg
           className="w-6 h-6 text-white"
@@ -66,18 +65,18 @@ const ManagerStats = ({ stats }) => {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
       ),
-      bgColor: "from-yellow-500 to-yellow-600",
-      textColor: "text-yellow-600",
+      bgColor: "from-emerald-500 to-emerald-600",
+      textColor: "text-emerald-600",
     },
     {
       key: "monthlyRevenue",
-      label: "Monthly Revenue",
+      label: "Total Revenue",
       value: stats.monthlyRevenue,
-      subtext: "This month",
+      subtext: "From analytics data",
       icon: (
         <svg
           className="w-6 h-6 text-white"
@@ -107,29 +106,108 @@ const ManagerStats = ({ stats }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {statItems.map((item) => (
-        <div
-          key={item.key}
-          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center">
-            <div
-              className={`w-12 h-12 bg-gradient-to-r ${item.bgColor} rounded-lg flex items-center justify-center`}
-            >
-              {item.icon}
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statItems.map((item) => (
+          <div
+            key={item.key}
+            className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center">
+              <div
+                className={`w-12 h-12 bg-gradient-to-r ${item.bgColor} rounded-lg flex items-center justify-center`}
+              >
+                {item.icon}
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">{item.label}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatValue(item.value, item.format)}
+                  {item.format === "currency" && "đ"}
+                </p>
+                <p className={`text-xs ${item.textColor}`}>{item.subtext}</p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">{item.label}</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatValue(item.value, item.format)}
-                {item.format === "currency" && "đ"}
-              </p>
-              <p className={`text-xs ${item.textColor}`}>{item.subtext}</p>
+          </div>
+        ))}
+      </div>
+
+      {analyticsData && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Top Stylist Performance
+            </h3>
+            <div className="space-y-3">
+              {analyticsData.stylists
+                .sort((a, b) => b.revenue - a.revenue)
+                .slice(0, 3)
+                .map((stylist, index) => (
+                  <div key={stylist.stylistId} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
+                        index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-orange-400'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-900">
+                          {stylist.stylistName}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {stylist.completed}/{stylist.totalBookings} completed
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {stylist.revenue.toLocaleString('vi-VN')}đ
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {stylist.totalBookings > 0 
+                          ? Math.round((stylist.completed / stylist.totalBookings) * 100)
+                          : 0}% completion
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Popular Services
+            </h3>
+            <div className="space-y-3">
+              {analyticsData.services
+                .sort((a, b) => b.usedCount - a.usedCount)
+                .slice(0, 5)
+                .map((service) => (
+                  <div key={service.serviceId} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {service.serviceName}
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-20 bg-gray-200 rounded-full h-2 mr-3">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full"
+                          style={{
+                            width: `${Math.min(100, (service.usedCount / Math.max(...analyticsData.services.map(s => s.usedCount))) * 100)}%`
+                          }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">
+                        {service.usedCount}
+                      </span>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 };
@@ -137,10 +215,33 @@ const ManagerStats = ({ stats }) => {
 ManagerStats.propTypes = {
   stats: PropTypes.shape({
     totalStylists: PropTypes.number.isRequired,
-    todayBookings: PropTypes.number.isRequired,
-    pendingDayOffs: PropTypes.number.isRequired,
+    totalBookings: PropTypes.number.isRequired,
+    completedBookings: PropTypes.number.isRequired,
     monthlyRevenue: PropTypes.number.isRequired,
   }).isRequired,
+  analyticsData: PropTypes.shape({
+    stylists: PropTypes.arrayOf(
+      PropTypes.shape({
+        stylistId: PropTypes.string.isRequired,
+        stylistName: PropTypes.string.isRequired,
+        salonId: PropTypes.string.isRequired,
+        totalBookings: PropTypes.number.isRequired,
+        completed: PropTypes.number.isRequired,
+        cancelled: PropTypes.number.isRequired,
+        cancelledEarly: PropTypes.number.isRequired,
+        cancelledDayOff: PropTypes.number.isRequired,
+        revenue: PropTypes.number.isRequired,
+      })
+    ),
+    services: PropTypes.arrayOf(
+      PropTypes.shape({
+        serviceId: PropTypes.string.isRequired,
+        serviceName: PropTypes.string.isRequired,
+        salonId: PropTypes.string.isRequired,
+        usedCount: PropTypes.number.isRequired,
+      })
+    ),
+  }),
 };
 
 export default ManagerStats;

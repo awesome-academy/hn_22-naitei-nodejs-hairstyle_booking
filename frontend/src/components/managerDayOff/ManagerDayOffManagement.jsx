@@ -1,71 +1,42 @@
-// frontend/src/components/managerDayOff/ManagerDayOffManagement.jsx
 import React, { useState, useEffect } from "react";
 import ManagerDayOffTable from "./ManagerDayOffTable";
 import LoadingSpinner from "../common/LoadingSpinner";
+import { useDayOffs } from "../../hooks/useDayOffs";
 
 const ManagerDayOffManagement = () => {
-  const [dayOffRequests, setDayOffRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    dayOffs,
+    loading,
+    error,
+    pagination,
+    fetchDayOffs,
+    updateDayOffStatus,
+  } = useDayOffs();
+
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    fetchDayOffRequests();
-  }, []);
+    fetchDayOffs();
+  }, [fetchDayOffs]);
 
-  const fetchDayOffRequests = async () => {
-    try {
-      setLoading(true);
-      setTimeout(() => {
-        const mockRequests = [
-          {
-            id: 1,
-            stylistName: "Trần Thị B",
-            requestDate: "2024-01-10",
-            dayOffDate: "2024-01-20",
-            reason: "Personal matters",
-            status: "PENDING",
-            createdAt: "2024-01-10T08:00:00Z",
-          },
-          {
-            id: 2,
-            stylistName: "Phạm Văn D",
-            requestDate: "2024-01-12",
-            dayOffDate: "2024-01-25",
-            reason: "Medical appointment",
-            status: "APPROVED",
-            createdAt: "2024-01-12T10:30:00Z",
-          },
-        ];
-
-        setDayOffRequests(mockRequests);
-        setLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error fetching day off requests:", error);
-      setLoading(false);
-    }
+  const showMessage = (msg) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(null), 3000);
   };
 
   const handleStatusUpdate = async (requestId, newStatus) => {
-    try {
-      setDayOffRequests((prev) =>
-        prev.map((request) =>
-          request.id === requestId ? { ...request, status: newStatus } : request
-        )
-      );
+    const result = await updateDayOffStatus(requestId, newStatus);
 
-      setMessage({
+    if (result.success) {
+      showMessage({
         type: "success",
         text: `Day off request ${newStatus.toLowerCase()} successfully!`,
       });
-
-      setTimeout(() => setMessage(null), 3000);
-    } catch {
-      setMessage({
+    } else {
+      showMessage({
         type: "error",
-        text: "Failed to update day off request status",
+        text: result.error,
       });
-      setTimeout(() => setMessage(null), 3000);
     }
   };
 
@@ -75,6 +46,7 @@ const ManagerDayOffManagement = () => {
 
   return (
     <div className="space-y-6">
+      {/* Message Display */}
       {message && (
         <div
           className={`px-4 py-3 rounded-lg flex items-center ${
@@ -111,6 +83,40 @@ const ManagerDayOffManagement = () => {
         </div>
       )}
 
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg
+              className="w-5 h-5 text-red-500 mt-0.5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 className="text-sm font-medium text-red-800">
+                Error Loading Day Off Requests
+              </h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <button
+                onClick={() => fetchDayOffs()}
+                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info Banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start">
           <svg
@@ -140,7 +146,8 @@ const ManagerDayOffManagement = () => {
       </div>
 
       <ManagerDayOffTable
-        dayOffRequests={dayOffRequests}
+        dayOffRequests={dayOffs}
+        pagination={pagination}
         onStatusUpdate={handleStatusUpdate}
       />
     </div>

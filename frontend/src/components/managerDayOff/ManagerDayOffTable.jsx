@@ -1,4 +1,3 @@
-// frontend/src/components/managerDayOff/ManagerDayOffTable.jsx
 import React from "react";
 import PropTypes from "prop-types";
 
