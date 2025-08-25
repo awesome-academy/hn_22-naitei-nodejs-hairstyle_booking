@@ -20,8 +20,11 @@ export const useStylists = () => {
       const cleanParams = {};
 
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== "" && value !== null && value !== undefined) {
-          // Convert number strings to actual numbers for API
+        if (value === null) {
+          return;
+        }
+
+        if (value !== "" && value !== undefined) {
           if (["minRating", "page", "limit"].includes(key)) {
             const numValue = Number(value);
             if (!isNaN(numValue) && numValue >= 0) {
@@ -33,10 +36,7 @@ export const useStylists = () => {
         }
       });
 
-      console.log("Sending clean params to stylist API:", cleanParams);
-
       const response = await stylistApi.getStylists(cleanParams);
-      console.log("Stylists API response:", response.data);
 
       const { data, pagination: paginationData } = response.data;
 
@@ -50,7 +50,7 @@ export const useStylists = () => {
         }
       );
     } catch (err) {
-      console.error("Error fetching stylists:", err);
+      console.error("❌ Error fetching stylists:", err);
       console.error("Error response:", err.response?.data);
 
       setError(
