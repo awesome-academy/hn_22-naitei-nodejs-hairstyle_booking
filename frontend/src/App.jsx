@@ -14,7 +14,6 @@ import ForgotPassword from "./components/auth/ForgotPassword";
 import ServiceManagementPage from "./pages/admin/ServiceManagementPage";
 import ManagerDashboardPage from "./pages/manager/ManagerDashboardPage";
 import ManagerStylistManagementPage from "./pages/manager/ManagerStylistManagementPage";
-import ManagerBookingManagementPage from "./pages/manager/ManagerBookingManagementPage";
 import ManagerDayOffManagementPage from "./pages/manager/ManagerDayOffManagementPage";
 import Stylists from "./pages/Stylists"
 import BookingFormPage from "./pages/BookingFormPage";
@@ -45,7 +44,6 @@ function App() {
 
           <Route path="/manager/dashboard" element={<ManagerDashboardPage />} />
           <Route path="/manager/stylists" element={<ManagerStylistManagementPage />} />
-          <Route path="/manager/bookings" element={<ManagerBookingManagementPage />} />
           <Route path="/manager/dayoff" element={<ManagerDayOffManagementPage />} />
         </Routes>
       </AuthProvider>
