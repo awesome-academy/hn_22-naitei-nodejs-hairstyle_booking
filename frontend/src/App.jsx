@@ -16,6 +16,11 @@ import ManagerDashboardPage from "./pages/manager/ManagerDashboardPage";
 import ManagerStylistManagementPage from "./pages/manager/ManagerStylistManagementPage";
 import ManagerBookingManagementPage from "./pages/manager/ManagerBookingManagementPage";
 import ManagerDayOffManagementPage from "./pages/manager/ManagerDayOffManagementPage";
+import Stylists from "./pages/Stylists"
+import BookingFormPage from "./pages/BookingFormPage";
+import BookingListPage from "./pages/BookingListPage";
+import BookingDetailPage from "./pages/BookingDetailPage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -29,6 +34,10 @@ function App() {
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin/salons" element={<SalonManagementPage />} />
           <Route path="/admin/services" element={<ServiceManagementPage />} />
+          <Route path="/booking" element={<BookingListPage />} />
+          <Route path="/booking/new" element={<BookingFormPage />} />
+          <Route path="/booking/:id" element={<BookingDetailPage />} />
+          <Route path="/stylists" element={<Stylists />} />
           {/* Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

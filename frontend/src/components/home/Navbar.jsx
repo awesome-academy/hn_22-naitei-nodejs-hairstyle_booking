@@ -16,7 +16,7 @@ const Navbar = () => {
     { key: "Services", label: "Services", path: "/services" },
     { key: "Salons", label: "Salons", path: "/salons" },
     { key: "Stylists", label: "Stylists", path: "/stylists" },
-    { key: "Booking", label: "Booking" },
+    { key: "My Booking", label: "My Booking", path: "/booking" },
   ];
 
   const scrollToSection = (sectionId) => {

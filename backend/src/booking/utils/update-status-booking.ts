@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { BookingStatus } from "../../common/enums/booking-status.enum";
 
 export async function customerUpdateStatusBooking(
+  prisma: PrismaClient,
   bookingId: string,
   customerId: string,
   userId: string,
@@ -10,7 +11,7 @@ export async function customerUpdateStatusBooking(
     | BookingStatus.CANCELLED_EARLY
     | BookingStatus.CANCELLED_DAYOFF,
 ) {
-  return this.prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const updated = await tx.booking.update({
       where: { id: bookingId },
       data: { status: newStatus },
@@ -66,6 +67,7 @@ export async function customerUpdateStatusBooking(
 }
 
 export async function stylistUpdateStatusBooking(
+  prisma: PrismaClient,
   bookingId: string,
   customerId: string,
   userId: string,
@@ -75,7 +77,7 @@ export async function stylistUpdateStatusBooking(
     | BookingStatus.CANCELLED_DAYOFF
     | BookingStatus.COMPLETED,
 ) {
-  return this.prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const updated = await tx.booking.update({
       where: { id: bookingId },
       data: { status: newStatus },
