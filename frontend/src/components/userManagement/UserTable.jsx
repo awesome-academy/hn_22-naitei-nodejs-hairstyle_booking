@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 
-const UserTable = ({ users, loading, onStatusChange }) => {
+const UserTable = ({ users, loading, onStatusChange, onView }) => {
   const [statusLoading, setStatusLoading] = useState({});
 
   const handleStatusToggle = async (userId, currentStatus) => {
@@ -112,7 +112,10 @@ const UserTable = ({ users, loading, onStatusChange }) => {
           {users.map((user) => (
             <tr key={user.id} className="hover:bg-gray-50">
               {/* User Info */}
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td
+                className="px-6 py-4 whitespace-nowrap"
+                onClick={() => onView?.(user)}
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
                     {user.avatar ? (
@@ -249,6 +252,7 @@ UserTable.propTypes = {
   users: PropTypes.array.isRequired,
   loading: PropTypes.bool.isRequired,
   onStatusChange: PropTypes.func.isRequired,
+  onView: PropTypes.func,
   userRole: PropTypes.string,
 };
 

@@ -5,6 +5,7 @@ import UserTable from "./UserTable";
 import CreateUserModal from "./CreateUserModal";
 import Pagination from "../common/Pagination";
 import LoadingSpinner from "../common/LoadingSpinner";
+import UserDetail from "./UserDetail";
 
 const UserManagement = () => {
   const {
@@ -27,6 +28,7 @@ const UserManagement = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [userRole, setUserRole] = useState("");
   const [message, setMessage] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
@@ -273,6 +275,38 @@ const UserManagement = () => {
           loading={loading}
           onStatusChange={handleStatusChange}
           userRole={userRole}
+          onView={async (user) => {
+            try {
+              const token = localStorage.getItem("token"); // lấy JWT đã lưu khi login
+
+              const res = await fetch(
+                `http://localhost:3000/api/users/${user.id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+
+              const data = await res.json();
+
+              setSelectedUser({
+                ...data,
+                salon: data.salon || null,
+                memberTier: data.memberTier || null,
+                rating: data.rating || null,
+                ratingCount: data.ratingCount || null,
+              });
+            } catch (err) {
+              console.error("Failed to fetch user detail:", err);
+              alert("Failed to load user detail");
+            }
+          }}
         />
       </div>
 
@@ -290,6 +324,10 @@ const UserManagement = () => {
         onCreateUser={handleCreateUser}
         userRole={userRole}
       />
+
+      {selectedUser && (
+        <UserDetail user={selectedUser} onClose={() => setSelectedUser(null)} />
+      )}
     </div>
   );
 };

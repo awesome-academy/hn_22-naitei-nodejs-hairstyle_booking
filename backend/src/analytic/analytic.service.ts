@@ -69,21 +69,22 @@ export class AnalyticService {
     }
 
     const serviceRaw = await this.prisma.serviceMonthlyStats.findMany({
-      where: { isGlobal: true, year, month },
+      where: { year, month },
       include: { service: { select: { name: true } } },
     });
 
     const serviceMap = new Map<string, AggregatedServiceStatsDto>();
     for (const s of serviceRaw) {
-      if (!serviceMap.has(s.serviceId)) {
-        serviceMap.set(s.serviceId, {
+      const key = s.serviceId;
+      if (!serviceMap.has(key)) {
+        serviceMap.set(key, {
           serviceId: s.serviceId,
           serviceName: s.service.name,
           salonId: null,
           usedCount: 0,
         });
       }
-      serviceMap.get(s.serviceId)!.usedCount += s.usedCount;
+      serviceMap.get(key)!.usedCount += s.usedCount;
     }
 
     const services: AggregatedServiceStatsDto[] = Array.from(
