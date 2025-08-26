@@ -1,8 +1,9 @@
-import { DayOffStatus } from '../../common/enums/day-off-status.enum'; 
+import { DayOffStatus } from "../../common/enums/day-off-status.enum";
 
 export class DayOffResponseDto {
   id: string;
   stylistId: string;
+  stylistName: string;
   salonId: string;
   date: Date;
   reason?: string;
