@@ -10,13 +10,19 @@ const Navbar = () => {
   const { isAuthenticated, user, clearAuthState } = useAuthContext();
   const [showLogin, setShowLogin] = useState(false);
 
+  const isCustomer =
+    user?.role?.name === "CUSTOMER" || user?.role === "CUSTOMER";
+  const shouldShowUserInfo = isAuthenticated && isCustomer;
+
   const menuItems = [
     { key: "Home", label: "Home" },
     { key: "AboutUs", label: "About Us" },
     { key: "Services", label: "Services", path: "/services" },
     { key: "Salons", label: "Salons", path: "/salons" },
     { key: "Stylists", label: "Stylists", path: "/stylists" },
-    { key: "My Booking", label: "My Booking", path: "/booking" },
+    ...(isCustomer
+      ? [{ key: "My Booking", label: "My Booking", path: "/booking" }]
+      : []),
   ];
 
   const scrollToSection = (sectionId) => {
@@ -35,7 +41,6 @@ const Navbar = () => {
   return (
     <>
       <nav className="bg-pink-500 text-white py-4 px-6 flex justify-between items-center shadow-lg sticky top-0 z-10">
-        {/* Logo */}
         <Link to="/">
           <img src={logo} alt="logo" className="h-12 w-auto" />
         </Link>
@@ -55,7 +60,7 @@ const Navbar = () => {
         </ul>
 
         <div className="flex items-center space-x-4">
-          {isAuthenticated ? (
+          {shouldShowUserInfo ? (
             <div className="flex items-center space-x-2">
               <Link
                 to="/profile"
@@ -75,23 +80,21 @@ const Navbar = () => {
                   />
                 </svg>
                 Profile
-                {user?.role && (
-                  <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded">
-                    {user.role}
-                  </span>
-                )}
+                <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded">
+                  {user.role?.name || user.role}
+                </span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold transition duration-200"
+                className="text-white hover:text-gray-200 font-semibold transition duration-200"
               >
                 Logout
               </button>
             </div>
           ) : (
             <button
-              className="bg-white text-pink-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-200"
               onClick={() => setShowLogin(true)}
+              className="bg-white text-pink-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-200"
             >
               Login
             </button>
@@ -99,7 +102,9 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {showLogin && <Login onClose={() => setShowLogin(false)} />}
+      {showLogin && (
+        <Login isOpen={showLogin} onClose={() => setShowLogin(false)} />
+      )}
     </>
   );
 };
