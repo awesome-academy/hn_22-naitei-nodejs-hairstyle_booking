@@ -10,6 +10,7 @@ import SalonManagementPage from "./pages/admin/SalonManagementPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import NotificationsPage from "./pages/NotificationsPage";
 import ForgotPassword from "./components/auth/ForgotPassword";
 import ServiceManagementPage from "./pages/admin/ServiceManagementPage";
 import ManagerDashboardPage from "./pages/manager/ManagerDashboardPage";
@@ -24,6 +25,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
           <Route path="/salons" element={<Salons />} />
+          <Route path="/notifications" element={<NotificationsPage />} /> 
           <Route path="/profile" element={<Profile />} />
           <Route path="/user-management" element={<UserManagementPage />} />
           <Route path="/admin-login" element={<AdminLogin />} />

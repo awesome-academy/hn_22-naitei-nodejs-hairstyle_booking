@@ -4,7 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useAuthContext } from "../../contexts/AuthContext";
 import logo from "../../assets/logo-icon.png";
 import Login from "../auth/Login";
-
+import NotificationBellSimple from "../notificationButton/NotificationBellSimple";
 const Navbar = () => {
   const { logout } = useAuth();
   const { isAuthenticated, user, clearAuthState } = useAuthContext();
@@ -57,6 +57,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
             <div className="flex items-center space-x-2">
+              <NotificationBellSimple isAuthenticated={isAuthenticated} userRole={user?.role} />
               <Link
                 to="/profile"
                 className="flex items-center bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-semibold transition duration-200"
