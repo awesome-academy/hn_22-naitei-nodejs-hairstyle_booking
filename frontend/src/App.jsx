@@ -15,10 +15,14 @@ import ServiceManagementPage from "./pages/admin/ServiceManagementPage";
 import ManagerDashboardPage from "./pages/manager/ManagerDashboardPage";
 import ManagerStylistManagementPage from "./pages/manager/ManagerStylistManagementPage";
 import ManagerDayOffManagementPage from "./pages/manager/ManagerDayOffManagementPage";
-import Stylists from "./pages/Stylists"
+import Stylists from "./pages/Stylists";
 import BookingFormPage from "./pages/BookingFormPage";
 import BookingListPage from "./pages/BookingListPage";
 import BookingDetailPage from "./pages/BookingDetailPage";
+import StylistNotificationsPage from "./pages/stylist/StylistNotificationsPage";
+import StylistLeaveManagementPage from "./pages/stylist/StylistLeaveManagementPage";
+import StylistCreateLeavePage from "./pages/stylist/StylistCreateLeavePage";
+import StylistDashboardPage from "./pages/stylist/StylistDashboardPage";
 
 function App() {
   return (
@@ -45,6 +49,13 @@ function App() {
           <Route path="/manager/dashboard" element={<ManagerDashboardPage />} />
           <Route path="/manager/stylists" element={<ManagerStylistManagementPage />} />
           <Route path="/manager/dayoff" element={<ManagerDayOffManagementPage />} />
+          
+          {/* Stylist */}
+          <Route path="/stylist-dashboard" element={<StylistDashboardPage />} />
+          <Route path="/stylist-dashboard/notifications" element={<StylistNotificationsPage />} />
+          <Route path="/stylist-dashboard/notifications/*"element={<StylistNotificationsPage />} />
+          <Route path="/stylist-dashboard/leaves" element={<StylistLeaveManagementPage />} />
+          <Route path="/stylist-dashboard/leaves/create" element={<StylistCreateLeavePage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
