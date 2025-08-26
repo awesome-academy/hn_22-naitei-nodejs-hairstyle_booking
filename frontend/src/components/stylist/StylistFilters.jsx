@@ -8,10 +8,6 @@ const StylistFilters = ({ onFiltersChange }) => {
   });
 
   const handleFilterChange = (key, value) => {
-    console.log(
-      `🔄 Filter changing: ${key} from "${filters[key]}" to "${value}"`
-    );
-
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
 
@@ -19,44 +15,48 @@ const StylistFilters = ({ onFiltersChange }) => {
     Object.entries(newFilters).forEach(([filterKey, val]) => {
       if (val !== "" && val !== null && val !== undefined) {
         cleanFilters[filterKey] = val;
+      } else {
+        cleanFilters[filterKey] = null;
       }
     });
 
-    console.log("📤 Sending clean filters to parent:", cleanFilters);
     onFiltersChange(cleanFilters);
   };
 
   const handleReset = () => {
-    console.log("🧹 Resetting all filters");
     const resetFilters = {
       minRating: "",
       salonId: "",
     };
     setFilters(resetFilters);
-    onFiltersChange({});
+
+    onFiltersChange({
+      minRating: null,
+      salonId: null,
+    });
   };
 
   const hasActiveFilters = Object.values(filters).some((value) => value !== "");
 
   const getActiveFiltersDisplay = () => {
     const activeFilters = [];
-    
+
     if (filters.minRating) {
       activeFilters.push({
         label: "Minimum Rating",
         value: `${filters.minRating}+ Stars`,
-        key: "minRating"
+        key: "minRating",
       });
     }
-    
+
     if (filters.salonId) {
       activeFilters.push({
         label: "Salon",
         value: filters.salonId,
-        key: "salonId"
+        key: "salonId",
       });
     }
-    
+
     return activeFilters;
   };
 
@@ -113,12 +113,24 @@ const StylistFilters = ({ onFiltersChange }) => {
       {activeFiltersDisplay.length > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center space-x-2 mb-2">
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+            <svg
+              className="w-4 h-4 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z"
+              />
             </svg>
-            <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+            <span className="text-sm font-medium text-gray-700">
+              Active Filters:
+            </span>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {activeFiltersDisplay.map((filter) => (
               <div
@@ -133,8 +145,18 @@ const StylistFilters = ({ onFiltersChange }) => {
                   className="text-pink-600 hover:text-pink-800 transition-colors"
                   title={`Remove ${filter.label} filter`}
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -146,10 +168,22 @@ const StylistFilters = ({ onFiltersChange }) => {
       {!hasActiveFilters && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center space-x-2 text-gray-500">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <span className="text-sm italic">No filters applied - showing all stylists</span>
+            <span className="text-sm italic">
+              No filters applied - showing all stylists
+            </span>
           </div>
         </div>
       )}

@@ -6,6 +6,7 @@ import SearchBar from "../components/common/SearchBar";
 import ServiceFilters from "../components/service/ServiceFilters";
 import Pagination from "../components/common/Pagination";
 import { useServices } from "../hooks/useServices";
+import { useNavigate } from "react-router-dom";
 
 const Services = () => {
   const [filters, setFilters] = useState({
@@ -19,6 +20,8 @@ const Services = () => {
 
   const { services, loading, error, pagination, fetchServices } =
     useServices(filters);
+
+  const navigate = useNavigate();
 
   const handleSearch = useCallback(
     (searchTerm) => {
@@ -55,9 +58,12 @@ const Services = () => {
     [filters, fetchServices]
   );
 
-  const handleBookService = useCallback((service) => {
-    console.log("Booking service:", service);
-  }, []);
+  const handleBookService = useCallback(
+    (serviceId) => {
+      navigate(`/booking?serviceIds=${serviceId}`);
+    },
+    [navigate]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -161,7 +167,7 @@ const Services = () => {
                   <ServiceCard
                     key={service.id}
                     service={service}
-                    onBookService={handleBookService}
+                    onBookService={handleBookService} // ✅ Pass callback with serviceId
                   />
                 ))}
               </div>

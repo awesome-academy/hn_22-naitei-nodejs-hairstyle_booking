@@ -37,7 +37,8 @@ export class BookingService {
         throw new NotFoundException(ERROR_MESSAGES.CUSTOMER.NOT_FOUND);
 
       const stylist = await tx.stylist.findUnique({
-        where: { id: dto.stylistId },
+        where: { userId: dto.stylistId },
+        select: { id: true },
       });
       if (!stylist)
         throw new NotFoundException(ERROR_MESSAGES.STYLIST.NOT_FOUND);
@@ -98,7 +99,7 @@ export class BookingService {
       const booking = await tx.booking.create({
         data: {
           customerId: customer.id,
-          stylistId: dto.stylistId,
+          stylistId: stylist.id,
           salonId: dto.salonId,
           workScheduleId: dto.workScheduleId,
           totalPrice,
@@ -349,7 +350,8 @@ export class BookingService {
 
       const newStatus = getCancelStatus(firstSlot.startTime, 3);
 
-      return customerUpdateStatusBooking(
+      return await customerUpdateStatusBooking(
+        this.prisma,
         booking.id,
         booking.customerId,
         booking.customer.userId,
@@ -372,15 +374,27 @@ export class BookingService {
         throw new BadRequestException(ERROR_MESSAGES.BOOKING.NO_TIMESLOT);
       }
 
+      if (dto.status === BookingStatus.COMPLETED) {
+        return stylistUpdateStatusBooking(
+          this.prisma,
+          booking.id,
+          booking.customerId,
+          booking.customer.userId,
+          BookingStatus.COMPLETED,
+        );
+      }
+
       const newStatus = getCancelStatus(firstSlot.startTime, 3);
 
       return stylistUpdateStatusBooking(
+        this.prisma,
         booking.id,
         booking.customerId,
         booking.customer.userId,
         newStatus,
       );
     }
+
     throw new ForbiddenException(
       ERROR_MESSAGES.BOOKING.ROLE_NOT_ALLOWED_UPDATE_STATUS,
     );
