@@ -190,16 +190,9 @@ const ManagerStats = ({ stats, analyticsData }) => {
                       </p>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-20 bg-gray-200 rounded-full h-2 mr-3">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full"
-                          style={{
-                            width: `${Math.min(100, (service.usedCount / Math.max(...analyticsData.services.map(s => s.usedCount))) * 100)}%`
-                          }}
-                        ></div>
-                      </div>
+                    
                       <span className="text-sm font-medium text-gray-900">
-                        {service.usedCount}
+                        {service.usedCount} total count
                       </span>
                     </div>
                   </div>
