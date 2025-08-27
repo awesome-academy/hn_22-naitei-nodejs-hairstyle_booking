@@ -22,9 +22,14 @@ import { buildCustomerResponse } from "../customer/utils/customer-response-build
 import { buildStylistResponse } from "../stylist/utils/stylist-response-builder";
 import { buildManagerResponse } from "../manager/utils/manager-response-builder";
 
+import { CloudinaryService } from "src/cloudinary/cloudinary.service";
+
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   private async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
@@ -115,13 +120,26 @@ export class ProfileService {
       }
     }
 
+    let avatarUrl = user.avatar;
+    if (dto.avatar) {
+      try {
+        avatarUrl = await this.cloudinaryService.uploadImage(
+          dto.avatar,
+          "avatars",
+        );
+      } catch (e) {
+        console.error("Failed to upload avatar:", e);
+        throw new BadRequestException("Failed to upload avatar");
+      }
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: {
         fullName: dto.fullName ?? user.fullName,
         phone: dto.phone ?? user.phone,
         gender: dto.gender ?? user.gender,
-        avatar: dto.avatar ?? user.avatar,
+        avatar: avatarUrl,
       },
       include: { role: true },
     });

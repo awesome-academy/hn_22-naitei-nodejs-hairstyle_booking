@@ -112,7 +112,7 @@ const ProfileCard = ({ profile, onEdit }) => {
             <div className="space-y-3">
               <div className="flex items-center">
                 <svg
-                  className="w-5 h-5 text-gray-400 mr-3"
+                  className="w-5 h-5 text-gray-600 mr-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -125,15 +125,15 @@ const ProfileCard = ({ profile, onEdit }) => {
                   />
                 </svg>
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{profile.email}</p>
+                  <p className="text-sm text-gray-700">Email</p>
+                  <p className="font-medium text-gray-900">{profile.email}</p>
                 </div>
               </div>
 
               {profile.phone && (
                 <div className="flex items-center">
                   <svg
-                    className="w-5 h-5 text-gray-400 mr-3"
+                    className="w-5 h-5 text-gray-600 mr-3"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -146,8 +146,8 @@ const ProfileCard = ({ profile, onEdit }) => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-500">Phone</p>
-                    <p className="font-medium">{profile.phone}</p>
+                    <p className="text-sm text-gray-700">Phone</p>
+                    <p className="font-medium text-gray-900">{profile.phone}</p>
                   </div>
                 </div>
               )}
@@ -155,7 +155,7 @@ const ProfileCard = ({ profile, onEdit }) => {
               {profile.gender && (
                 <div className="flex items-center">
                   <svg
-                    className="w-5 h-5 text-gray-400 mr-3"
+                    className="w-5 h-5 text-gray-600 mr-3"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -168,8 +168,10 @@ const ProfileCard = ({ profile, onEdit }) => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-500">Gender</p>
-                    <p className="font-medium capitalize">{profile.gender}</p>
+                    <p className="text-sm text-gray-700">Gender</p>
+                    <p className="font-medium capitalize text-gray-900">
+                      {profile.gender}
+                    </p>
                   </div>
                 </div>
               )}
@@ -183,7 +185,7 @@ const ProfileCard = ({ profile, onEdit }) => {
             <div className="space-y-3">
               <div className="flex items-center">
                 <svg
-                  className="w-5 h-5 text-gray-400 mr-3"
+                  className="w-5 h-5 text-gray-600 mr-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -196,7 +198,7 @@ const ProfileCard = ({ profile, onEdit }) => {
                   />
                 </svg>
                 <div>
-                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-sm text-gray-700">Status</p>
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       profile.isActive
@@ -211,7 +213,7 @@ const ProfileCard = ({ profile, onEdit }) => {
 
               <div className="flex items-center">
                 <svg
-                  className="w-5 h-5 text-gray-400 mr-3"
+                  className="w-5 h-5 text-gray-600 mr-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -224,14 +226,16 @@ const ProfileCard = ({ profile, onEdit }) => {
                   />
                 </svg>
                 <div>
-                  <p className="text-sm text-gray-500">Member Since</p>
-                  <p className="font-medium">{formatDate(profile.createdAt)}</p>
+                  <p className="text-sm text-gray-700">Member Since</p>
+                  <p className="font-medium text-gray-900">
+                    {formatDate(profile.createdAt)}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center">
                 <svg
-                  className="w-5 h-5 text-gray-400 mr-3"
+                  className="w-5 h-5 text-gray-600 mr-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -244,8 +248,10 @@ const ProfileCard = ({ profile, onEdit }) => {
                   />
                 </svg>
                 <div>
-                  <p className="text-sm text-gray-500">Last Updated</p>
-                  <p className="font-medium">{formatDate(profile.updatedAt)}</p>
+                  <p className="text-sm text-gray-700">Last Updated</p>
+                  <p className="font-medium text-gray-900">
+                    {formatDate(profile.updatedAt)}
+                  </p>
                 </div>
               </div>
             </div>
