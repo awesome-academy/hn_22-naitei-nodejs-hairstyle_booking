@@ -20,10 +20,16 @@ import { RoleName } from "../common/enums/role-name.enum";
 import { BookingStatus } from "../common/enums/booking-status.enum";
 import { ERROR_MESSAGES } from "../common/constants/error.constants";
 import { SLOT_DURATION_MINUTES } from "src/common/constants/work-schedule.const";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationGateway } from "../notification/notification.gateway";
 
 @Injectable()
 export class BookingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
+  ) {}
 
   async createBooking(
     userId: string,
@@ -83,6 +89,14 @@ export class BookingService {
       availableSlots.sort(
         (a, b) => a.startTime.getTime() - b.startTime.getTime(),
       );
+
+      const now = new Date();
+      for (const slot of availableSlots) {
+        if (slot.startTime < now) {
+          throw new BadRequestException("Cannot book a time slot in the past.");
+        }
+      }
+
       for (let i = 1; i < availableSlots.length; i++) {
         if (
           availableSlots[i].startTime.getTime() !==
@@ -154,9 +168,34 @@ export class BookingService {
           },
         },
       });
+
       if (!fullBooking) {
         throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
       }
+      const customerName = fullBooking.customer.user.fullName;
+      const startTime = fullBooking.timeslots[0].timeSlot.startTime;
+      const endTime =
+        fullBooking.timeslots[fullBooking.timeslots.length - 1].timeSlot
+          .endTime;
+      const serviceNames = fullBooking.services
+        .map((s) => s.service.name)
+        .join(", ");
+      const message = `Customer ${customerName} has booked an appointment with you on ${startTime.toLocaleDateString()} from ${startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} to ${endTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}. Services: ${serviceNames}.`;
+      const notification = await this.notificationService.createNotification(
+        fullBooking.stylist.user.id,
+        "New Booking ",
+        message,
+      );
+
+      const unreadCount = await this.notificationService.getUnreadCount(
+        fullBooking.stylist.user.id,
+      );
+
+      this.notificationGateway.sendToUser(fullBooking.stylist.user.id, {
+        ...notification,
+        unreadCount,
+      });
+
       return buildBookingResponse(fullBooking);
     });
   }

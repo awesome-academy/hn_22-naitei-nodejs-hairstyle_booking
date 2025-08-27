@@ -20,8 +20,10 @@ const ManagerDayOffTable = ({ dayOffRequests, onStatusUpdate }) => {
     );
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("vi-VN");
+  const formatDate = (date) => {
+    if (!date) return "-";
+    const d = typeof date === "string" ? new Date(date) : date;
+    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("vi-VN");
   };
 
   return (
@@ -41,7 +43,7 @@ const ManagerDayOffTable = ({ dayOffRequests, onStatusUpdate }) => {
                 Stylist
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Request Date
+                Created Date
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Day Off Date
@@ -67,12 +69,12 @@ const ManagerDayOffTable = ({ dayOffRequests, onStatusUpdate }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {formatDate(request.requestDate)}
+                    {formatDate(request.createdAt)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {formatDate(request.dayOffDate)}
+                    {request.dayOffDate}
                   </div>
                 </td>
                 <td className="px-6 py-4">
