@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import NavBar from "../components/home/Navbar";
 import Footer from "../components/home/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import ConfirmModal from "../components/common/ConfirmModal"; // ✅ Import ConfirmModal
+import ConfirmModal from "../components/common/ConfirmModal";
+import ReviewModal from "../components/booking/ReviewModal";
 import { useBookings } from "../hooks/useBookings";
 
 const BookingListPage = () => {
@@ -15,6 +16,9 @@ const BookingListPage = () => {
     pagination,
     fetchBookings,
     updateBookingStatus,
+    pendingReviews,
+    reviewLoading,
+    submitReview,
   } = useBookings();
 
   const [filters, setFilters] = useState({
@@ -24,13 +28,27 @@ const BookingListPage = () => {
   });
 
   const [message, setMessage] = useState(null);
+
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [selectedBookingInfo, setSelectedBookingInfo] = useState(null);
 
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [currentReviewBooking, setCurrentReviewBooking] = useState(null);
+  const [hasShownAutoReview, setHasShownAutoReview] = useState(false);
+
   useEffect(() => {
     fetchBookings(filters);
   }, [filters, fetchBookings]);
+
+  useEffect(() => {
+    if (pendingReviews.length > 0 && !showReviewModal && !hasShownAutoReview) {
+      console.log("Auto-showing review modal for:", pendingReviews[0]);
+      setCurrentReviewBooking(pendingReviews[0]);
+      setShowReviewModal(true);
+      setHasShownAutoReview(true); // ✅ Mark as shown
+    }
+  }, [pendingReviews, showReviewModal, hasShownAutoReview]);
 
   const showMessage = (msg) => {
     setMessage(msg);
@@ -74,6 +92,33 @@ const BookingListPage = () => {
     setShowCancelModal(false);
     setSelectedBookingId(null);
     setSelectedBookingInfo(null);
+  };
+
+  const handleReviewSubmit = async (bookingId, reviewData) => {
+    const result = await submitReview(bookingId, reviewData);
+
+    if (result.success) {
+      showMessage({
+        type: "success",
+        text: "Thank you for your review!",
+      });
+      await fetchBookings(filters);
+      const remainingReviews = pendingReviews.filter((b) => b.id !== bookingId);
+      if (remainingReviews.length > 0) {
+        setCurrentReviewBooking(remainingReviews[0]);
+      } else {
+        setShowReviewModal(false);
+        setCurrentReviewBooking(null);
+        setHasShownAutoReview(false);
+      }
+    }
+
+    return result;
+  };
+
+  const handleManualReviewClick = (booking) => {
+    setCurrentReviewBooking(booking);
+    setShowReviewModal(true);
   };
 
   const getStatusBadge = (status) => {
@@ -152,6 +197,32 @@ const BookingListPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
+      {pendingReviews.length > 0 && (
+        <div className="bg-blue-600 text-white py-3">
+          <div className="container mx-auto px-6">
+            <div className="flex items-center justify-center">
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="font-medium">
+                You have {pendingReviews.length} completed booking
+                {pendingReviews.length > 1 ? "s" : ""} awaiting review
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="bg-gradient-to-r from-pink-500 to-purple-600 text-white py-12">
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center">
@@ -161,7 +232,16 @@ const BookingListPage = () => {
             </div>
 
             <button
-              onClick={() => navigate("/booking/new")}
+              onClick={() => {
+                if (pendingReviews.length > 0) {
+                  showMessage({
+                    type: "error",
+                    text: "Please complete your pending reviews before making new bookings",
+                  });
+                  return;
+                }
+                navigate("/booking/new");
+              }}
               className="bg-white text-pink-600 px-6 py-3 rounded-lg font-medium hover:bg-pink-50 transition-all duration-200 flex items-center space-x-2 shadow-lg"
             >
               <svg
@@ -189,6 +269,8 @@ const BookingListPage = () => {
             className={`px-4 py-3 rounded-lg flex items-center ${
               message.type === "success"
                 ? "bg-green-50 border border-green-200 text-green-700"
+                : message.type === "warning"
+                ? "bg-yellow-50 border border-yellow-200 text-yellow-700"
                 : "bg-red-50 border border-red-200 text-red-700"
             }`}
           >
@@ -247,6 +329,7 @@ const BookingListPage = () => {
           </div>
         </div>
 
+        {/* Error State */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
             <div className="flex items-start">
@@ -301,7 +384,16 @@ const BookingListPage = () => {
               You haven&apos;t made any salon appointments yet.
             </p>
             <button
-              onClick={() => navigate("/booking/new")}
+              onClick={() => {
+                if (pendingReviews.length > 0) {
+                  showMessage({
+                    type: "error",
+                    text: "Please complete your pending reviews before making new bookings",
+                  });
+                  return;
+                }
+                navigate("/booking/new");
+              }}
               className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               Book Your First Appointment
@@ -312,7 +404,11 @@ const BookingListPage = () => {
             {bookings.map((booking) => (
               <div
                 key={booking.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow ${
+                  booking.status === "COMPLETED" && !booking.review
+                    ? "ring-2 ring-blue-500 ring-opacity-50"
+                    : ""
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -321,6 +417,29 @@ const BookingListPage = () => {
                         Booking #{booking.id.slice(-8)}
                       </h3>
                       {getStatusBadge(booking.status)}
+
+                      {booking.status === "COMPLETED" && !booking.review && (
+                        <span className="bg-blue-100 text-blue-800 border-blue-200 px-3 py-1 text-xs font-medium rounded-full border">
+                          Review Required
+                        </span>
+                      )}
+
+                      {booking.review && (
+                        <span className="bg-green-100 text-green-800 border-green-200 px-3 py-1 text-xs font-medium rounded-full border flex items-center">
+                          <svg
+                            className="w-3 h-3 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405.1L10 14.25l4.068 2.906c.714 1.356 1.6.713 1.405-.1l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Reviewed
+                        </span>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
@@ -391,6 +510,15 @@ const BookingListPage = () => {
                             Cancel
                           </button>
                         )}
+
+                        {booking.status === "COMPLETED" && !booking.review && (
+                          <button
+                            onClick={() => handleManualReviewClick(booking)}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm transition-colors"
+                          >
+                            Write Review
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -450,6 +578,13 @@ const BookingListPage = () => {
         confirmText="Yes, Cancel Booking"
         cancelText="No, Keep Booking"
         type="danger"
+      />
+
+      <ReviewModal
+        isOpen={showReviewModal}
+        booking={currentReviewBooking}
+        onSubmit={handleReviewSubmit}
+        loading={reviewLoading}
       />
 
       <Footer />

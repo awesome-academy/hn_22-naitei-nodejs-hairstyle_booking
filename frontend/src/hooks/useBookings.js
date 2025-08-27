@@ -153,6 +153,9 @@ export const useBookings = () => {
     itemsPerPage: 10,
   });
 
+  const [pendingReviews, setPendingReviews] = useState([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+
   const fetchBookings = useCallback(async (params = {}) => {
     try {
       setLoading(true);
@@ -177,9 +180,22 @@ export const useBookings = () => {
           itemsPerPage: 10,
         }
       );
+
+      const completedWithoutReview = (data || []).filter(
+        (booking) => booking.status === "COMPLETED" && !booking.review &&
+          booking.review !== 0
+      );
+      setPendingReviews(completedWithoutReview);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch bookings");
       setBookings([]);
+      setPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        itemsPerPage: 10,
+      });
+      setPendingReviews([]);
     } finally {
       setLoading(false);
     }
@@ -214,6 +230,32 @@ export const useBookings = () => {
     }
   }, []);
 
+  const submitReview = useCallback(async (bookingId, reviewData) => {
+    try {
+      setReviewLoading(true);
+      const response = await bookingApi.reviewBooking(bookingId, reviewData);
+      setPendingReviews((prev) =>
+        prev.filter((booking) => booking.id !== bookingId)
+      );
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, review: response.data }
+            : booking
+        )
+      );
+
+      return { success: true, data: response.data };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || "Failed to submit review",
+      };
+    } finally {
+      setReviewLoading(false);
+    }
+  }, []);
+
   return {
     bookings,
     loading,
@@ -222,6 +264,9 @@ export const useBookings = () => {
     fetchBookings,
     fetchBookingById,
     updateBookingStatus,
+    pendingReviews,
+    reviewLoading,
+    submitReview,
   };
 };
 

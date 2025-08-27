@@ -1,8 +1,8 @@
-import axiosClient from '../axiosClient';
+import axiosClient from "../axiosClient";
 
 export const bookingApi = {
   getBookings: (params = {}) => {
-    return axiosClient.get('/bookings', { params });
+    return axiosClient.get("/bookings", { params });
   },
 
   getBookingById: (id) => {
@@ -14,13 +14,17 @@ export const bookingApi = {
   },
 
   createBooking: (bookingData) => {
-    return axiosClient.post('/bookings', bookingData);
+    return axiosClient.post("/bookings", bookingData);
   },
 
   getAvailableTimeSlots: (stylistId, workScheduleId) => {
     return axiosClient.get(`/time-schedule/${stylistId}`, {
-      params: { workScheduleId }
+      params: { workScheduleId },
     });
+  },
+
+  reviewBooking: (bookingId, reviewData) => {
+    return axiosClient.post(`/bookings/${bookingId}/review`, reviewData);
   },
 };
 
