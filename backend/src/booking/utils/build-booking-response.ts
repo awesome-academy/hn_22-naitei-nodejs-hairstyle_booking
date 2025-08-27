@@ -35,6 +35,12 @@ export interface BookingData {
       endTime: Date;
     };
   }[];
+  review?: {
+    id: string;
+    rating: number;
+    content: string | null;
+    createdAt: Date;
+  } | null;
 }
 
 export function buildBookingResponse(data: BookingData): BookingResponseDto {
@@ -65,5 +71,13 @@ export function buildBookingResponse(data: BookingData): BookingResponseDto {
       startTime: t.timeSlot.startTime,
       endTime: t.timeSlot.endTime,
     })),
+    review: data.review
+      ? {
+          id: data.review.id,
+          rating: data.review.rating,
+          content: data.review.content || undefined, // ✅ Convert null thành undefined
+          createdAt: data.review.createdAt,
+        }
+      : null,
   };
 }

@@ -27,6 +27,12 @@ export class BookingResponseDto {
     startTime: Date;
     endTime: Date;
   }[];
+  review?: {
+    id: string;
+    rating: number;
+    content?: string;
+    createdAt: Date;
+  } | null;
 }
 
 export class BookingListResponseDto {
