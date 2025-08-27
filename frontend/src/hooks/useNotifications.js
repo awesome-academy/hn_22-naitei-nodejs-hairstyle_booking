@@ -24,7 +24,7 @@ const useNotifications = (initialPage = 1, initialLimit = 10) => {
     setError(null);
     try {
       const defaultParams = { page: pagination.currentPage, limit: pagination.limit, onlyUnread: false, ...params };
-      const data = await notificationApi.getAllUserNotifications("");
+      const data = await notificationApi.getAllForStylist();
       setNotifications(data.data);
     } catch (err) {
       console.error("Error fetching notifications:", err, err?.response?.data);
@@ -44,7 +44,7 @@ const useNotifications = (initialPage = 1, initialLimit = 10) => {
         return null;
     }
     try {
-      const updatedNotif = await notificationApi.markNotificationAsRead(id);
+      const updatedNotif = await notificationApi.markAsRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
       return updatedNotif;
     } catch (err) {

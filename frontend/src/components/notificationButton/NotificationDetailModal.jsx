@@ -14,8 +14,7 @@ const NotificationDetailModal = ({ notificationId, onClose, onMarkAsRead }) => {
       setError(null);
 
       try {
-        const data = await notificationApi.getNotificationDetail(notificationId);
-        console.log(data)
+        const data = await notificationApi.getById(notificationId);
         if (!data || !data.data.id) {
           setError("Notification not found.");
           return;
@@ -24,7 +23,7 @@ const NotificationDetailModal = ({ notificationId, onClose, onMarkAsRead }) => {
         setNotification(data.data);
 
         if (!data.isRead) {
-          await notificationApi.markNotificationAsRead(notificationId);
+          await notificationApi.markAsRead(notificationId);
           if (onMarkAsRead) onMarkAsRead(notificationId);
         }
       } catch (err) {
