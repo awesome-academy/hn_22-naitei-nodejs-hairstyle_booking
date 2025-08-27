@@ -9,7 +9,7 @@ const StylistSidebar = () => {
   const menuItems = [
     {
       key: "dashboard",
-      label: "Lịch làm việc",
+      label: "Work Schedule",
       path: "/stylist-dashboard",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +19,7 @@ const StylistSidebar = () => {
     },
     {
       key: "notifications",
-      label: "Thông báo",
+      label: "Notifications",
       path: "/stylist-dashboard/notifications",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,7 +29,7 @@ const StylistSidebar = () => {
     },
     {
       key: "leaves",
-      label: "Xem đơn nghỉ",
+      label: "View Leave Request",
       path: "/stylist-dashboard/leaves",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@ const StylistSidebar = () => {
     },
     {
       key: "create-leave",
-      label: "Tạo đơn nghỉ",
+      label: "Create Leave Request",
       path: "/stylist-dashboard/leaves/create",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@ const StylistSidebar = () => {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            {!isCollapsed && <span className="ml-2">Trang chính</span>}
+            {!isCollapsed && <span className="ml-2">Home Page</span>}
           </Link>
         </div>
       </aside>

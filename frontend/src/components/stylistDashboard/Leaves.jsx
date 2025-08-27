@@ -50,7 +50,7 @@ export default function Leaves() {
   };
 
   const handleCancel = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn hủy đơn nghỉ này?")) return;
+    if (!window.confirm("Are you sure you want to cancel this leave request?")) return;
     try {
       setCancellingId(id);
       await axiosClient.delete(`/leaves/${id}`);
@@ -58,8 +58,8 @@ export default function Leaves() {
         prev.map((x) => (x.id === id ? { ...x, status: "CANCELLED" } : x))
       );
     } catch (error) {
-      console.error("Lỗi khi hủy đơn:", error);
-      alert("Không thể hủy đơn nghỉ.");
+      console.error("Error cancelling request:", error);
+      alert("Unable to cancel leave request.");
     } finally {
       setCancellingId(null);
     }
@@ -79,9 +79,9 @@ export default function Leaves() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                  Nghỉ phép
+                  Leave
                 </h1>
-                <p className="text-gray-500 mt-1">Quản lý các yêu cầu nghỉ phép của bạn</p>
+                <p className="text-gray-500 mt-1">Manage your leave requests</p>
               </div>
             </div>
             
@@ -92,7 +92,7 @@ export default function Leaves() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              <span className="font-medium">Tạo yêu cầu</span>
+              <span className="font-medium">Create Request</span>
             </Link>
           </div>
         </div>
@@ -101,10 +101,10 @@ export default function Leaves() {
         {!loading && leaves.length > 0 && (
           <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { status: 'PENDING', label: 'Chờ duyệt', color: 'yellow' },
-              { status: 'APPROVED', label: 'Đã duyệt', color: 'green' },
-              { status: 'REJECTED', label: 'Từ chối', color: 'red' },
-              { status: 'CANCELLED', label: 'Đã hủy', color: 'gray' }
+              { status: 'PENDING', label: 'Pending', color: 'yellow' },
+              { status: 'APPROVED', label: 'Approved', color: 'green' },
+              { status: 'REJECTED', label: 'Rejected', color: 'red' },
+              { status: 'CANCELLED', label: 'Cancelled', color: 'gray' }
             ].map(({ status, label, color }) => {
               const count = leaves.filter(l => l.status === status).length;
               return (
@@ -134,7 +134,7 @@ export default function Leaves() {
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span>Ngày</span>
+                      <span>Day</span>
                     </div>
                   </Th>
                   <Th>
@@ -142,7 +142,7 @@ export default function Leaves() {
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <span>Lý do</span>
+                      <span>Reason</span>
                     </div>
                   </Th>
                   <Th>
@@ -150,7 +150,7 @@ export default function Leaves() {
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span>Trạng thái</span>
+                      <span>Status</span>
                     </div>
                   </Th>
                   <Th className="text-right">
@@ -158,7 +158,7 @@ export default function Leaves() {
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                       </svg>
-                      <span>Thao tác</span>
+                      <span>Actions</span>
                     </div>
                   </Th>
                 </tr>
@@ -170,7 +170,7 @@ export default function Leaves() {
                       <div className="flex items-center justify-center py-12">
                         <div className="flex items-center space-x-3">
                           <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                          <span className="text-gray-600 font-medium">Đang tải dữ liệu...</span>
+                          <span className="text-gray-600 font-medium">Loading data...</span>
                         </div>
                       </div>
                     </Td>
@@ -184,13 +184,13 @@ export default function Leaves() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                           </svg>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">Chưa có đơn nghỉ nào</h3>
-                        <p className="text-gray-500 mb-6">Bạn chưa tạo yêu cầu nghỉ phép nào</p>
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">No leave requests yet</h3>
+                        <p className="text-gray-500 mb-6">No leave requests created yet</p>
                         <Link
                           to="create"
                           className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300"
                         >
-                          Tạo yêu cầu đầu tiên
+                          Create your first request
                         </Link>
                       </div>
                     </Td>
@@ -220,7 +220,7 @@ export default function Leaves() {
                           {x.reason ? (
                             <span className="text-gray-700">{x.reason}</span>
                           ) : (
-                            <span className="text-gray-400 italic">Không có lý do</span>
+                            <span className="text-gray-400 italic">No reason provided</span>
                           )}
                         </div>
                       </Td>
@@ -242,14 +242,14 @@ export default function Leaves() {
                             {cancellingId === x.id ? (
                               <>
                                 <div className="w-4 h-4 border-2 border-red-300 border-t-red-600 rounded-full animate-spin"></div>
-                                <span className="text-sm font-medium">Đang hủy...</span>
+                                <span className="text-sm font-medium">Cancelling...</span>
                               </>
                             ) : (
                               <>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                <span className="text-sm font-medium">Hủy</span>
+                                <span className="text-sm font-medium">Cancelled</span>
                               </>
                             )}
                           </button>
@@ -295,13 +295,13 @@ function formatVN(iso) {
 function labelStatus(status) {
   switch (status) {
     case "PENDING":
-      return "Chờ duyệt";
+      return "Pending";
     case "APPROVED":
-      return "Đã duyệt";
+      return "Approved";
     case "REJECTED":
-      return "Từ chối";
+      return "Rejected";
     case "CANCELLED":
-      return "Đã hủy";
+      return "Cancelled";
     default:
       return status;
   }

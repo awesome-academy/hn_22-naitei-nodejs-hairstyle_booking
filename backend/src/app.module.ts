@@ -21,6 +21,7 @@ import { StatsAggregationJob } from "./jobs/stats-aggregation.job";
 import { TimeScheduleModule } from "./time-schedule/time-schedule.module";
 import { AnalyticModule } from "./analytic/analytic.module";
 import { LeaveModule } from "./leave/leave.module";
+import { NotificationModule } from "./notification/notification.module";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LeaveModule } from "./leave/leave.module";
     TimeScheduleModule,
     AnalyticModule,
     LeaveModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [
