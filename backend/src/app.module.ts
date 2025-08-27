@@ -22,6 +22,7 @@ import { TimeScheduleModule } from "./time-schedule/time-schedule.module";
 import { AnalyticModule } from "./analytic/analytic.module";
 import { LeaveModule } from "./leave/leave.module";
 import { NotificationModule } from "./notification/notification.module";
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -39,7 +40,7 @@ import { NotificationModule } from "./notification/notification.module";
     TimeScheduleModule,
     AnalyticModule,
     LeaveModule,
-    NotificationModule
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

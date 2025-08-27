@@ -18,7 +18,7 @@ export default function StylistDashboard() {
         setRawSchedules(Array.isArray(res) ? res : []);
       } catch (err) {
         console.error(err);
-        setError("Không thể tải lịch làm việc.");
+        setError("Unable to load work schedule.");
       } finally {
         setLoading(false);
       }
@@ -34,7 +34,7 @@ export default function StylistDashboard() {
         return [
           {
             date,
-            title: "Nghỉ",
+            title: "Off",
             status: "OFF",
           },
         ];
@@ -119,7 +119,7 @@ export default function StylistDashboard() {
           </span>
           {isToday && (
             <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium shadow-sm">
-              Hôm nay
+              Today
             </span>
           )}
         </div>
@@ -140,7 +140,7 @@ export default function StylistDashboard() {
           ))}
           {events.length > 3 && (
             <div className="text-gray-500 text-[11px] font-medium mt-2 px-1">
-              +{events.length - 3} lịch khác...
+              +{events.length - 3} other schedule...
             </div>
           )}
         </div>
@@ -164,7 +164,7 @@ export default function StylistDashboard() {
 
   const monthLabel = useMemo(
     () =>
-      currentDate.toLocaleDateString("vi-VN", {
+      currentDate.toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       }),
@@ -177,9 +177,9 @@ export default function StylistDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            📅 Tổng quan lịch làm việc
+            📅 Work Schedule Overview
           </h1>
-          <p className="text-gray-600">Quản lý và theo dõi lịch trình làm việc của bạn</p>
+          <p className="text-gray-600">Manage and track your work schedule</p>
         </div>
 
         {/* Controls */}
@@ -195,7 +195,7 @@ export default function StylistDashboard() {
                     : "text-gray-600 hover:text-gray-800 hover:bg-gray-200"
                 }`}
               >
-                Tháng
+                Month
               </button>
               <button
                 onClick={() => setView("week")}
@@ -205,7 +205,7 @@ export default function StylistDashboard() {
                     : "text-gray-600 hover:text-gray-800 hover:bg-gray-200"
                 }`}
               >
-                Tuần
+                Week
               </button>
             </div>
 
@@ -215,13 +215,13 @@ export default function StylistDashboard() {
                 onClick={goToday} 
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-all duration-200 hover:shadow-sm"
               >
-                Hôm nay
+                Today
               </button>
               <button 
                 onClick={prev} 
                 className="px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-lg transition-all duration-200 hover:shadow-sm"
               >
-                Trước
+                Before
               </button>
               <div className="min-w-[150px] text-center font-semibold text-gray-800 text-lg">
                 {monthLabel}
@@ -230,7 +230,7 @@ export default function StylistDashboard() {
                 onClick={next} 
                 className="px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-lg transition-all duration-200 hover:shadow-sm"
               >
-                Sau
+                After
               </button>
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function StylistDashboard() {
             <div className="text-center py-12">
               <div className="inline-flex items-center gap-3 text-gray-500">
                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-emerald-600 border-t-transparent"></div>
-                <span className="text-lg">Đang tải lịch làm việc...</span>
+                <span className="text-lg">Loading work schedule....</span>
               </div>
             </div>
           ) : error ? (
@@ -253,7 +253,7 @@ export default function StylistDashboard() {
             </div>
           ) : view === "month" ? (
             <div className="grid grid-cols-7">
-              {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"].map((d) => (
+              {["Monday", "Tuesday", "Wednesday", "Thursday", " Friday", "Saturday", "Sunday"].map((d) => (
                 <div
                   key={d}
                   className="text-sm font-semibold border-b border-gray-200 p-4 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-center"
@@ -268,7 +268,7 @@ export default function StylistDashboard() {
               {weekDays.map((d, index) => (
                 <div key={d} className="border-r border-gray-200 last:border-r-0">
                   <div className="text-sm font-semibold border-b border-gray-200 p-3 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-center">
-                    {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"][index]}
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", " Friday", "Saturday", "Sunday"][index]}
                   </div>
                   {renderDayCell(d)}
                 </div>
@@ -279,19 +279,19 @@ export default function StylistDashboard() {
 
         {/* Legend */}
         <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <h3 className="font-semibold text-gray-800 mb-3">Chú thích:</h3>
+          <h3 className="font-semibold text-gray-800 mb-3">Legend:</h3>
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-emerald-100 border-l-3 border-emerald-400 rounded"></div>
-              <span className="text-gray-700">Có thể đặt lịch</span>
+              <span className="text-gray-700">Available for booking</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-100 border-l-3 border-blue-400 rounded"></div>
-              <span className="text-gray-700">Đã có lịch hẹn</span>
+              <span className="text-gray-700">Booked</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-100 border-l-3 border-red-400 rounded"></div>
-              <span className="text-gray-700">Ngày nghỉ</span>
+              <span className="text-gray-700">Leave day</span>
             </div>
           </div>
         </div>
