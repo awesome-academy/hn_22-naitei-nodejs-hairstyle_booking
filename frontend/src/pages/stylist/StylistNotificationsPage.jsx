@@ -12,7 +12,7 @@ const StylistNotificationsPage = () => {
   return (
     <StylistLayout
       title="Notifications"
-      subtitle="Xem và đánh dấu đọc các thông báo của bạn"
+      subtitle="View and mark your notifications as read"
       sidebar={<StylistSideBar />}
     >
       {isDetail ? <NotificationDetail /> : <Notifications />}

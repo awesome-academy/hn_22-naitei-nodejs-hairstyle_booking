@@ -41,4 +41,13 @@ export class NotificationController {
       user.role,
     );
   }
+
+  @UseGuards(RolesGuard)
+  @Roles(RoleName.CUSTOMER, RoleName.STYLIST, RoleName.MANAGER, RoleName.ADMIN)
+  @Get()
+  async getAllNotifications(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<NotificationResponseDto[]> {
+    return this.notificationService.getAllByUser(user.id, user.role);
+  }
 }

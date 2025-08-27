@@ -75,4 +75,21 @@ export class NotificationService {
 
     return this.mapToNotificationResponseDto(updatedNotification);
   }
+
+  async getAllByUser(
+    userId: string,
+    userRole: string,
+  ): Promise<NotificationResponseDto[]> {
+    const whereClause =
+      userRole === RoleName.ADMIN
+        ? {}
+        : { userId };
+
+    const notifications = await this.prisma.notification.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return notifications.map(this.mapToNotificationResponseDto);
+  }
 }
