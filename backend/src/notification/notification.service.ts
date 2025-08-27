@@ -35,7 +35,6 @@ export class NotificationService {
     const notification = await this.prisma.notification.findUnique({
       where: { id: notificationId },
     });
-
     if (!notification) {
       throw new NotFoundException(ERROR_MESSAGES.NOTIFICATION.NOT_FOUND);
     }
@@ -43,7 +42,6 @@ export class NotificationService {
     if (userRole !== RoleName.ADMIN && notification.userId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.NOTIFICATION.NOT_OWNER);
     }
-
     return this.mapToNotificationResponseDto(notification);
   }
 
