@@ -105,9 +105,9 @@ const AdminStats = ({ stats }) => {
     },
     {
       key: "cancelledBookings",
-      label: "Cancelled Bookings",
-      value: stats.cancelledBookings,
-      subtext: "All cancellation types",
+      label: "Cancelled",
+      value: stats.cancelled,
+      subtext: "Regular cancellations",
       icon: (
         <svg
           className="w-6 h-6 text-white"
@@ -123,8 +123,54 @@ const AdminStats = ({ stats }) => {
           />
         </svg>
       ),
-      bgColor: "from-red-500 to-red-600",
-      textColor: "text-red-600",
+      bgColor: "from-red-400 to-red-500",
+      textColor: "text-red-500",
+    },
+    {
+      key: "cancelledEarly",
+      label: "Cancelled Early",
+      value: stats.cancelledEarly,
+      subtext: "Early cancellations (3+ hours)",
+      icon: (
+        <svg
+          className="w-6 h-6 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+      bgColor: "from-orange-400 to-orange-500",
+      textColor: "text-orange-500",
+    },
+    {
+      key: "cancelledDayOff",
+      label: "Cancelled Day Off",
+      value: stats.cancelledDayOff,
+      subtext: "Cancelled due to stylist day off",
+      icon: (
+        <svg
+          className="w-6 h-6 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+      bgColor: "from-gray-400 to-gray-500",
+      textColor: "text-gray-500",
     },
     {
       key: "totalServices",
@@ -187,6 +233,9 @@ AdminStats.propTypes = {
     cancelledBookings: PropTypes.number.isRequired,
     totalRevenue: PropTypes.number.isRequired,
     totalServices: PropTypes.number.isRequired,
+    cancelled: PropTypes.number.isRequired,
+    cancelledEarly: PropTypes.number.isRequired,
+    cancelledDayOff: PropTypes.number.isRequired,
   }).isRequired,
 };
 

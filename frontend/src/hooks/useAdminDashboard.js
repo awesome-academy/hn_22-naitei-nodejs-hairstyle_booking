@@ -20,6 +20,9 @@ export const useAdminDashboard = () => {
         completedBookings: 0,
         cancelledBookings: 0,
         totalServices: 0,
+        cancelled: 0,
+        cancelledEarly: 0,
+        cancelledDayOff: 0,
       };
     }
 
@@ -34,9 +37,13 @@ export const useAdminDashboard = () => {
       (sum, salon) => sum + salon.completed,
       0
     );
-    const cancelledBookings = salons.reduce(
-      (sum, salon) =>
-        sum + salon.cancelled + salon.cancelledEarly + salon.cancelledDayOff,
+    const cancelled = salons.reduce((sum, salon) => sum + salon.cancelled, 0);
+    const cancelledEarly = salons.reduce(
+      (sum, salon) => sum + salon.cancelledEarly,
+      0
+    );
+    const cancelledDayOff = salons.reduce(
+      (sum, salon) => sum + salon.cancelledDayOff,
       0
     );
     const totalRevenue = salons.reduce((sum, salon) => sum + salon.revenue, 0);
@@ -46,7 +53,9 @@ export const useAdminDashboard = () => {
       totalSalons,
       totalBookings,
       completedBookings,
-      cancelledBookings,
+      cancelled,
+      cancelledEarly,
+      cancelledDayOff,
       totalRevenue,
       totalServices,
     };
