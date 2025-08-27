@@ -374,7 +374,9 @@ export class BookingService {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
-        customer: true,
+        customer: {
+          include: { user: true },
+        },
         stylist: true,
         timeslots: {
           include: { timeSlot: true },
@@ -404,6 +406,28 @@ export class BookingService {
       }
 
       const newStatus = getCancelStatus(firstSlot.startTime, 3);
+
+      const customerName = booking.customer.user.fullName;
+      const startTime = firstSlot.startTime;
+      const endTime =
+        booking.timeslots[booking.timeslots.length - 1].timeSlot.endTime;
+
+      const message = `Customer ${customerName} đã hủy booking vào ${startTime.toLocaleDateString()} từ ${startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} đến ${endTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.`;
+
+      const notification = await this.notificationService.createNotification(
+        booking.stylist.userId,
+        "Booking Cancelled",
+        message,
+      );
+
+      const unreadCount = await this.notificationService.getUnreadCount(
+        booking.stylist.userId,
+      );
+
+      this.notificationGateway.sendToUser(booking.stylist.userId, {
+        ...notification,
+        unreadCount,
+      });
 
       return await customerUpdateStatusBooking(
         this.prisma,
