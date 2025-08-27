@@ -187,6 +187,14 @@ export class BookingService {
             timeSlot: { select: { id: true, startTime: true, endTime: true } },
           },
         },
+        review: {
+          select: {
+            id: true,
+            rating: true,
+            content: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -296,6 +304,14 @@ export class BookingService {
               },
             },
           },
+          review: {
+            select: {
+              id: true,
+              rating: true,
+              content: true,
+              createdAt: true,
+            },
+          },
         },
       }),
     ]);
@@ -400,12 +416,16 @@ export class BookingService {
     );
   }
 
-  async reviewBooking(
-    bookingId: string,
-    customerId: string,
-    dto: CreateReviewDto,
-  ) {
+  async reviewBooking(bookingId: string, userId: string, dto: CreateReviewDto) {
     return this.prisma.$transaction(async (tx) => {
+      const customer = await tx.customer.findUnique({
+        where: { userId },
+      });
+
+      if (!customer) {
+        throw new NotFoundException(ERROR_MESSAGES.CUSTOMER.NOT_FOUND);
+      }
+
       const booking = await tx.booking.findUnique({
         where: { id: bookingId },
       });
@@ -414,7 +434,7 @@ export class BookingService {
         throw new NotFoundException(ERROR_MESSAGES.BOOKING.NOT_FOUND);
       }
 
-      if (booking.customerId !== customerId) {
+      if (booking.customerId !== customer.id) {
         throw new ForbiddenException(ERROR_MESSAGES.BOOKING.NOT_OWNER);
       }
 
@@ -432,7 +452,7 @@ export class BookingService {
       const review = await tx.review.create({
         data: {
           bookingId,
-          customerId,
+          customerId: customer.id,
           stylistId: booking.stylistId,
           rating: dto.rating,
           content: dto.content,

@@ -64,8 +64,8 @@ export class BookingController {
   async reviewBooking(
     @Param("id") bookingId: string,
     @Body() dto: CreateReviewDto,
-    @CurrentUser("id") customerId: string,
+    @CurrentUser() user: JwtPayload,
   ) {
-    return this.bookingService.reviewBooking(bookingId, customerId, dto);
+    return this.bookingService.reviewBooking(bookingId, user.id, dto);
   }
 }

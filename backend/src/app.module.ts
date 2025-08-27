@@ -17,6 +17,7 @@ import { ProfileModule } from "./profile/profile.module";
 import { BookingModule } from "./booking/booking.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { WorkSchedulesJob } from "./jobs/work-schedules.job";
+import { StatsAggregationJob } from "./jobs/stats-aggregation.job";
 import { TimeScheduleModule } from "./time-schedule/time-schedule.module";
 import { AnalyticModule } from "./analytic/analytic.module";
 import { LeaveModule } from "./leave/leave.module";
@@ -52,6 +53,7 @@ import { NotificationModule } from "./notification/notification.module";
       useClass: RolesGuard,
     },
     WorkSchedulesJob,
+    StatsAggregationJob,
   ],
 })
 export class AppModule {}

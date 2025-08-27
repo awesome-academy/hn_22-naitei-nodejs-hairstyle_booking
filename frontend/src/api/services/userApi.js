@@ -16,4 +16,8 @@ export const userApi = {
   updateUserStatus: (userId, data) => {
     return axiosClient.patch(`/users/${userId}/status`, data);
   },
+
+  getUserById: (userId) => {
+    return axiosClient.get(`/users/${userId}`);
+  },
 };

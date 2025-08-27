@@ -141,26 +141,6 @@ export class StatsAggregationJob {
           isGlobal: false,
         },
       });
-
-      await this.prisma.serviceMonthlyStats.upsert({
-        where: {
-          serviceId_salonId_year_month: {
-            serviceId,
-            salonId: null as any,
-            year: lastMonth.getFullYear(),
-            month: lastMonth.getMonth() + 1,
-          },
-        },
-        update: { usedCount, isGlobal: true },
-        create: {
-          serviceId,
-          salonId: null,
-          year: lastMonth.getFullYear(),
-          month: lastMonth.getMonth() + 1,
-          usedCount,
-          isGlobal: true,
-        },
-      });
     }
   }
 

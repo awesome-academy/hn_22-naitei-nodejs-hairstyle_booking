@@ -99,7 +99,7 @@ const StylistSelection = ({
                       <svg
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(stylist.rating || 0)
+                          i < Math.round(stylist.rating || 0)
                             ? "text-yellow-400"
                             : "text-gray-300"
                         }`}
@@ -111,7 +111,7 @@ const StylistSelection = ({
                     ))}
                   </div>
                   <span className="ml-2 text-sm text-gray-600">
-                    {(stylist.rating || 0).toFixed(1)} (
+                    {(Math.round(stylist.rating) || 0).toFixed(1)} (
                     {stylist.ratingCount || 0} reviews)
                   </span>
                 </div>
