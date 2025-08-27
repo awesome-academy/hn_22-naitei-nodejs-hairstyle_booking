@@ -6,6 +6,7 @@ export class TimeSlotResponseDto {
 }
 
 export class WorkScheduleResponseDto {
+  id: string;
   workingDate: Date;
   isDayOff: boolean;
   timeSlots: TimeSlotResponseDto[];

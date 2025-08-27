@@ -16,16 +16,30 @@ import { UpdateDayOffStatusDto } from "./dtos/update-day-off-status.dto";
 import { DayOff, DayOffStatus as PrismaDayOffStatus } from "@prisma/client";
 import { DayOffStatus } from "src/common/enums/day-off-status.enum";
 
+import { startOfDay, endOfDay } from "date-fns";
+
 import { BookingStatus } from "src/common/enums/booking-status.enum";
+
+type DayOffWithStylist = DayOff & {
+  stylist?: {
+    user?: {
+      fullName: string;
+    };
+  };
+};
 
 @Injectable()
 export class LeaveService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private mapToDayOffResponseDto(dayOff: DayOff): DayOffResponseDto {
+  private mapToDayOffResponseDto(dayOff: DayOffWithStylist): DayOffResponseDto {
+    if (!dayOff.stylist?.user?.fullName) {
+      throw new Error("Stylist fullName is missing");
+    }
     return {
       id: dayOff.id,
       stylistId: dayOff.stylistId,
+      stylistName: dayOff.stylist.user.fullName,
       salonId: dayOff.salonId,
       date: dayOff.date,
       reason: dayOff.reason ?? undefined,
@@ -51,8 +65,7 @@ export class LeaveService {
       throw new NotFoundException(ERROR_MESSAGES.USER.NOT_FOUND);
     }
 
-    const requestDate = new Date(dto.date);
-    requestDate.setHours(0, 0, 0, 0);
+    const requestDate = startOfDay(new Date(dto.date));
 
     if (requestDate < new Date(new Date().setHours(0, 0, 0, 0))) {
       throw new BadRequestException(
@@ -82,6 +95,7 @@ export class LeaveService {
         reason: dto.reason ?? null,
         status: PrismaDayOffStatus.PENDING,
       },
+      include: { stylist: { include: { user: true } } },
     });
     return this.mapToDayOffResponseDto(dayOff);
   }
@@ -104,6 +118,7 @@ export class LeaveService {
 
     const dayOffToCancel = await this.prisma.dayOff.findUnique({
       where: { id: dayOffId },
+      include: { stylist: { include: { user: true } } },
     });
 
     if (!dayOffToCancel) {
@@ -162,6 +177,7 @@ export class LeaveService {
     const dayOffRequests = await this.prisma.dayOff.findMany({
       where: whereClause,
       orderBy: { date: "desc" },
+      include: { stylist: { include: { user: true } } },
     });
     return dayOffRequests.map(this.mapToDayOffResponseDto);
   }
@@ -215,18 +231,33 @@ export class LeaveService {
     const updatedDayOff = await this.prisma.dayOff.update({
       where: { id: dayOffId },
       data: { status: dto.status },
+      include: { stylist: { include: { user: true } } },
     });
 
     if (dto.status === DayOffStatus.APPROVED) {
+      const dayStart = startOfDay(dayOff.date);
+      const dayEnd = endOfDay(dayOff.date);
+
       await this.prisma.workSchedule.updateMany({
-        where: { stylistId: dayOff.stylistId, workingDate: dayOff.date },
+        where: {
+          stylistId: dayOff.stylistId,
+          workingDate: {
+            gte: dayStart,
+            lte: dayEnd,
+          },
+        },
         data: { isDayOff: true },
       });
 
       await this.prisma.booking.updateMany({
         where: {
           stylistId: dayOff.stylistId,
-          workSchedule: { workingDate: dayOff.date },
+          workSchedule: {
+            workingDate: {
+              gte: dayStart,
+              lte: dayEnd,
+            },
+          },
           status: BookingStatus.PENDING,
         },
         data: { status: BookingStatus.CANCELLED_DAYOFF },
