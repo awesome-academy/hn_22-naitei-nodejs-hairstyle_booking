@@ -1,6 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
+import * as bodyParser from "body-parser";
 import * as dotenv from "dotenv";
 
 async function bootstrap() {
@@ -16,13 +17,15 @@ async function bootstrap() {
     credentials: true,
   });
   app.setGlobalPrefix("api");
-  dotenv.config();
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
     }),
   );
+  app.use(bodyParser.json({ limit: "5mb" })); // NOTE: tăng limit JSON body lên 5MB
+  app.use(bodyParser.urlencoded({ limit: "5mb", extended: true })); // NOTE: tăng limit form-data lên 5MB
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
