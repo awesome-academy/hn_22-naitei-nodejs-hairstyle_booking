@@ -16,13 +16,6 @@ export class NotificationController {
 
   @UseGuards(RolesGuard)
   @Roles(RoleName.CUSTOMER, RoleName.STYLIST, RoleName.MANAGER, RoleName.ADMIN)
-  @Get()
-  async getAllUserNotifications(@CurrentUser() user: JwtPayload): Promise<NotificationResponseDto[]> {
-    return this.notificationService.getAllUserNotifications(user.id, user.role);
-  }
-
-  @UseGuards(RolesGuard)  
-  @Roles(RoleName.CUSTOMER, RoleName.STYLIST, RoleName.MANAGER, RoleName.ADMIN)
   @Get(":id")
   async getNotificationDetail(
     @Param("id") notificationId: string,
@@ -50,7 +43,7 @@ export class NotificationController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(RoleName.CUSTOMER, RoleName.STYLIST, RoleName.MANAGER, RoleName.ADMIN)
+  @Roles(RoleName.CUSTOMER, RoleName.STYLIST)
   @Get()
   async getAllNotifications(
     @CurrentUser() user: JwtPayload,

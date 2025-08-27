@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, allowedRoles, redirectTo = "/" }) => {
   const userRole = user.role?.name || user.role;
   if (allowedRoles && !allowedRoles.includes(userRole)) {
     const roleRedirects = {
-      ADMIN: "/user-management",
+      ADMIN: "/admin/dashboard",
       MANAGER: "/manager/dashboard",
       STYLIST: "/stylist-dashboard",
       CUSTOMER: "/",

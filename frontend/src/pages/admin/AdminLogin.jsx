@@ -19,7 +19,8 @@ const AdminLogin = () => {
     const userRole = localStorage.getItem("userRole");
 
     if (token && userRole === "ADMIN") {
-      navigate("/user-management"); 
+      navigate("/admin/dashboard", { replace: true }); // ✅ Thêm replace: true
+      return;
     }
 
     const emailInput = document.querySelector('input[name="email"]');
@@ -65,8 +66,8 @@ const AdminLogin = () => {
       const result = await loginAdmin(formData);
 
       if (result.success) {
-        navigate("/user-management");
-        window.location.reload();
+        navigate("/admin/dashboard", { replace: true });
+        window.location.reload()
       } else {
         setError(result.error);
       }
@@ -77,6 +78,14 @@ const AdminLogin = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center px-4">
