@@ -55,23 +55,6 @@ const AdminHeader = () => {
           </div>
 
           <div className="flex items-center justify-end space-x-4 flex-1">
-            <button className="relative bg-white p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200 border border-transparent">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-3-3V9a6 6 0 10-12 0v5l-3 3h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              <span className="absolute -top-1 -right-1 block h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
