@@ -2,20 +2,36 @@ import React, { useEffect, useMemo, useState } from "react";
 import axiosClient from "../../api/axiosClient";
 
 export default function StylistDashboard() {
-  const [view, setView] = useState("month"); // or "week"
+  const [view, setView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [rawSchedules, setRawSchedules] = useState([]);
   const [error, setError] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const getDayKey = (date) => new Date(date).toISOString().slice(0, 10);
+  const getDayKey = (date) => {
+    const d = new Date(date);
+    d.setHours(d.getHours() + 7); 
+    return d.toISOString().slice(0, 10);
+  };
+
+  const openSlotDetail = (slot) => {
+    setSelectedSlot(slot);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedSlot(null);
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axiosClient.get("/time-schedule/me");
-        setRawSchedules(Array.isArray(res) ? res : []);
+        const res = await axiosClient.get("/time-schedule/me"); 
+        setRawSchedules(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error(err);
         setError("Unable to load work schedule.");
@@ -34,28 +50,30 @@ export default function StylistDashboard() {
         return [
           {
             date,
-            title: "Off",
+            title: "Day Off",
             status: "OFF",
           },
         ];
       }
 
-      return ws.timeSlots.map((slot) => {
-        const start = new Date(slot.startTime).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        const end = new Date(slot.endTime).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      return ws.timeSlots
+        .filter((slot) => slot.isBooked)
+        .map((slot) => {
+          const start = new Date(slot.startTime).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const end = new Date(slot.endTime).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
 
-        return {
-          date,
-          title: `${start}-${end}`,
-          status: slot.isBooked ? "BOOKED" : "AVAILABLE",
-        };
-      });
+          return {
+            date,
+            title: `${start}-${end}`,
+            status: "BOOKED"
+          };
+        });
     });
   };
 
@@ -106,12 +124,12 @@ export default function StylistDashboard() {
         } ${isToday ? "ring-2 ring-emerald-400 ring-offset-1" : ""}`}
       >
         <div className="flex justify-between items-center mb-2">
-          <span 
+          <span
             className={`text-sm font-medium ${
-              isCurrentMonth 
-                ? isToday 
-                  ? "text-emerald-600 font-semibold" 
-                  : "text-gray-900" 
+              isCurrentMonth
+                ? isToday
+                  ? "text-emerald-600 font-semibold"
+                  : "text-gray-900"
                 : "text-gray-400"
             }`}
           >
@@ -127,6 +145,7 @@ export default function StylistDashboard() {
           {events.slice(0, 3).map((ev, i) => (
             <div
               key={i}
+              title={ev.title}
               className={`truncate px-2 py-1.5 rounded-lg font-medium shadow-sm transition-all duration-150 ${
                 ev.status === "OFF"
                   ? "bg-red-100 text-red-700 border-l-3 border-red-400"
@@ -134,6 +153,9 @@ export default function StylistDashboard() {
                   ? "bg-blue-100 text-blue-700 border-l-3 border-blue-400"
                   : "bg-emerald-100 text-emerald-700 border-l-3 border-emerald-400"
               }`}
+              onClick={() => {
+                if (ev.status === "BOOKED") openSlotDetail(ev);
+              }}
             >
               {ev.title}
             </div>
@@ -190,8 +212,8 @@ export default function StylistDashboard() {
               <button
                 onClick={() => setView("month")}
                 className={`px-4 py-2 rounded-md font-medium transition-all duration-200 ${
-                  view === "month" 
-                    ? "bg-emerald-600 text-white shadow-sm" 
+                  view === "month"
+                    ? "bg-emerald-600 text-white shadow-sm"
                     : "text-gray-600 hover:text-gray-800 hover:bg-gray-200"
                 }`}
               >
@@ -200,8 +222,8 @@ export default function StylistDashboard() {
               <button
                 onClick={() => setView("week")}
                 className={`px-4 py-2 rounded-md font-medium transition-all duration-200 ${
-                  view === "week" 
-                    ? "bg-emerald-600 text-white shadow-sm" 
+                  view === "week"
+                    ? "bg-emerald-600 text-white shadow-sm"
                     : "text-gray-600 hover:text-gray-800 hover:bg-gray-200"
                 }`}
               >
@@ -211,14 +233,14 @@ export default function StylistDashboard() {
 
             {/* Navigation */}
             <div className="flex items-center gap-3">
-              <button 
-                onClick={goToday} 
+              <button
+                onClick={goToday}
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-all duration-200 hover:shadow-sm"
               >
                 Today
               </button>
-              <button 
-                onClick={prev} 
+              <button
+                onClick={prev}
                 className="px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-lg transition-all duration-200 hover:shadow-sm"
               >
                 Before
@@ -226,8 +248,8 @@ export default function StylistDashboard() {
               <div className="min-w-[150px] text-center font-semibold text-gray-800 text-lg">
                 {monthLabel}
               </div>
-              <button 
-                onClick={next} 
+              <button
+                onClick={next}
                 className="px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-lg transition-all duration-200 hover:shadow-sm"
               >
                 After
@@ -253,14 +275,16 @@ export default function StylistDashboard() {
             </div>
           ) : view === "month" ? (
             <div className="grid grid-cols-7">
-              {["Monday", "Tuesday", "Wednesday", "Thursday", " Friday", "Saturday", "Sunday"].map((d) => (
-                <div
-                  key={d}
-                  className="text-sm font-semibold border-b border-gray-200 p-4 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-center"
-                >
-                  {d}
-                </div>
-              ))}
+              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(
+                (d) => (
+                  <div
+                    key={d}
+                    className="text-sm font-semibold border-b border-gray-200 p-4 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-center"
+                  >
+                    {d}
+                  </div>
+                )
+              )}
               {monthDays.map((d) => renderDayCell(d))}
             </div>
           ) : (
@@ -268,7 +292,9 @@ export default function StylistDashboard() {
               {weekDays.map((d, index) => (
                 <div key={d} className="border-r border-gray-200 last:border-r-0">
                   <div className="text-sm font-semibold border-b border-gray-200 p-3 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-center">
-                    {["Monday", "Tuesday", "Wednesday", "Thursday", " Friday", "Saturday", "Sunday"][index]}
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][
+                      index
+                    ]}
                   </div>
                   {renderDayCell(d)}
                 </div>
@@ -281,10 +307,6 @@ export default function StylistDashboard() {
         <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <h3 className="font-semibold text-gray-800 mb-3">Legend:</h3>
           <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-emerald-100 border-l-3 border-emerald-400 rounded"></div>
-              <span className="text-gray-700">Available for booking</span>
-            </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-100 border-l-3 border-blue-400 rounded"></div>
               <span className="text-gray-700">Booked</span>
