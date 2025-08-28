@@ -14,7 +14,7 @@ const Stylists = () => {
     limit: 12,
   });
 
-  const { stylists, loading, error, pagination, fetchStylists } = useStylists();
+  const { stylists, loading, error, pagination, fetchStylists, toggleFavourite } = useStylists();
 
   useEffect(() => {
     fetchStylists(filters);
@@ -165,6 +165,7 @@ const Stylists = () => {
                     stylist={stylist}
                     onViewStylist={handleViewStylist}
                     onBookStylist={handleBookStylist}
+                    onToggleFavourite={toggleFavourite}
                   />
                 ))}
               </div>

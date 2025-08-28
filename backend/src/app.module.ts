@@ -1,3 +1,4 @@
+import { FavoriteModule } from "./favourite/favorite.module";
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -39,6 +40,7 @@ import { LeaveModule } from "./leave/leave.module";
     TimeScheduleModule,
     AnalyticModule,
     LeaveModule,
+    FavoriteModule,
   ],
   controllers: [AppController],
   providers: [
