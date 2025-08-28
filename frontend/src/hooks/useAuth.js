@@ -44,7 +44,7 @@ export const useAuth = () => {
   const getNavigationPath = useCallback((userRole) => {
     switch (userRole?.toUpperCase()) {
       case "ADMIN":
-        return "/user-management";
+        return "/admin/dashboard";
       case "MANAGER":
         return "/manager/dashboard";
       case "STYLIST":
