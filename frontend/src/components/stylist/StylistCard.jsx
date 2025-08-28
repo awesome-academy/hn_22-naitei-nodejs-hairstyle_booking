@@ -1,7 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useAuthContext } from "../../contexts/AuthContext";
 
-const StylistCard = ({ stylist, onViewStylist, onBookStylist }) => {
+const StylistCard = ({ stylist, onBookStylist, onToggleFavourite }) => {
+  const { isAuthenticated } = useAuthContext();
   const {
     id,
     fullName,
@@ -11,6 +13,7 @@ const StylistCard = ({ stylist, onViewStylist, onBookStylist }) => {
     rating,
     ratingCount,
     salon,
+    favourite,
     createdAt,
   } = stylist;
 
@@ -60,12 +63,6 @@ const StylistCard = ({ stylist, onViewStylist, onBookStylist }) => {
     return stars;
   };
 
-  const handleViewStylist = () => {
-    if (onViewStylist) {
-      onViewStylist(stylist);
-    }
-  };
-
   const handleBookStylist = () => {
     if (onBookStylist) {
       onBookStylist(stylist);
@@ -106,6 +103,29 @@ const StylistCard = ({ stylist, onViewStylist, onBookStylist }) => {
             />
           </svg>
         </div>
+
+        <button
+          type="button"
+          className="absolute top-3 right-3 z-10"
+          onClick={() => onToggleFavourite(id, favourite)}
+          aria-label={favourite ? "Unfavourite" : "Favourite"}
+        >
+          <svg
+            className={`w-7 h-7 transition-colors duration-200 ${
+              favourite ? "text-pink-500 fill-pink-500" : "text-gray-300"
+            }`}
+            fill={favourite ? "currentColor" : "none"}
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z"
+            />
+          </svg>
+        </button>
       </div>
 
       {/* Content */}
@@ -191,20 +211,16 @@ const StylistCard = ({ stylist, onViewStylist, onBookStylist }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex space-x-2">
-          <button
-            onClick={handleViewStylist}
-            className="flex-1 bg-pink-500 text-white py-2 px-4 rounded-lg hover:bg-pink-600 transition-colors duration-200 font-medium text-sm"
-          >
-            View Profile
-          </button>
-          <button
-            onClick={handleBookStylist}
-            className="flex-1 border border-pink-500 text-pink-500 py-2 px-4 rounded-lg hover:bg-pink-50 transition-colors duration-200 font-medium text-sm"
-          >
-            Book Now
-          </button>
-        </div>
+        {isAuthenticated && (
+          <div className="flex space-x-2">
+            <button
+              onClick={handleBookStylist}
+              className="flex-1 border border-pink-500 text-pink-500 py-2 px-4 rounded-lg hover:bg-pink-50 transition-colors duration-200 font-medium text-sm"
+            >
+              Book Now
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -219,6 +235,7 @@ StylistCard.propTypes = {
     avatar: PropTypes.string,
     rating: PropTypes.number.isRequired,
     ratingCount: PropTypes.number.isRequired,
+    favourite: PropTypes.bool.isRequired,
     salon: PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
@@ -227,6 +244,7 @@ StylistCard.propTypes = {
   }).isRequired,
   onViewStylist: PropTypes.func,
   onBookStylist: PropTypes.func,
+  onToggleFavourite: PropTypes.func,
 };
 
 export default StylistCard;

@@ -4,7 +4,10 @@ import { Prisma } from "@prisma/client";
 import { JwtPayload } from "../common/types/jwt-payload.interface";
 import { GetStylistsQueryDto } from "./dto/get-stylists-query.dto";
 import { CreateStylistDto } from "./dto/create-stylist.dto";
-import { StylistListResponseDto } from "./dto/stylist-response.dto";
+import {
+  StylistListResponseDto,
+  StylistWithFavouriteResponseDto,
+} from "./dto/stylist-response.dto";
 import { buildStylistResponse } from "./utils/stylist-response-builder";
 import { buildStylistListResponse } from "./utils/stylist-response-builder";
 import { StylistResponseDto } from "./dto/stylist-response.dto";
@@ -175,27 +178,29 @@ export class StylistService {
 
   async getListByCustomer(
     query: GetStylistsQueryDto,
+    userId?: string | null,
   ): Promise<StylistListResponseDto> {
+    let customerId: string | null = null;
+
+    if (userId) {
+      const customer = await this.prisma.customer.findUnique({
+        where: { userId },
+      });
+      if (customer) {
+        customerId = customer.id;
+      }
+    } else {
+      console.log("error");
+    }
+
     const { search, salonId, minRating, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.StylistWhereInput = {};
+    if (search) where.user = { fullName: { contains: search } };
+    if (salonId) where.salonId = salonId;
+    if (minRating !== undefined) where.rating = { gte: minRating };
 
-    if (search) {
-      where.user = {
-        fullName: {
-          contains: search,
-        },
-      };
-    }
-
-    if (salonId) {
-      where.salonId = salonId;
-    }
-
-    if (minRating !== undefined) {
-      where.rating = { gte: minRating };
-    }
     const [stylists, total] = await Promise.all([
       this.prisma.stylist.findMany({
         where,
@@ -213,19 +218,16 @@ export class StylistService {
               isActive: true,
               createdAt: true,
               updatedAt: true,
-              role: {
-                select: {
-                  name: true,
-                },
-              },
+              role: { select: { name: true } },
             },
           },
-          salon: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+          salon: { select: { id: true, name: true } },
+          favoritedBy: customerId
+            ? {
+                where: { customerId },
+                select: { id: true },
+              }
+            : false, // nếu chưa login thì không join
         },
         orderBy: [{ rating: "desc" }, { ratingCount: "desc" }],
       }),
@@ -239,7 +241,22 @@ export class StylistService {
       itemsPerPage: limit,
     };
 
-    return buildStylistListResponse(stylists, pagination);
+    const data: StylistWithFavouriteResponseDto[] = stylists.map((s) => ({
+      ...s.user,
+      rating: s.rating,
+      ratingCount: s.ratingCount,
+      salon: s.salon,
+      favourite: customerId ? s.favoritedBy.length > 0 : false,
+    }));
+
+    if (customerId) {
+      data.sort((a, b) => {
+        if (a.favourite === b.favourite) return 0;
+        return a.favourite ? -1 : 1;
+      });
+    }
+
+    return { data, pagination };
   }
 
   async getListByAdmin({

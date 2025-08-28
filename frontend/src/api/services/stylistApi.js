@@ -20,4 +20,12 @@ export const stylistApi = {
   deleteStylist: (id) => {
     return axiosClient.delete(`/stylists/${id}`);
   },
+
+  addToFavorite: (stylistId) => {
+    return axiosClient.post(`/favorites/${stylistId}`);
+  },
+
+  removeFromFavorite: (stylistId) => {
+    return axiosClient.delete(`/favorites/${stylistId}`);
+  },
 };

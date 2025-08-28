@@ -19,3 +19,12 @@ export class StylistListResponseDto {
   data: StylistResponseDto[];
   pagination: PaginationDto;
 }
+
+export class StylistWithFavouriteResponseDto extends StylistResponseDto {
+  favourite: boolean;
+}
+
+export class StylistWithFavouriteListResponseDto {
+  data: StylistWithFavouriteResponseDto[];
+  pagination: PaginationDto;
+}
