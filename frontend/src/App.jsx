@@ -12,6 +12,7 @@ import Salons from "./pages/Salons";
 import Stylists from "./pages/Stylists";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import NotificationsPage from "./pages/NotificationsPage";
 import ForgotPassword from "./components/auth/ForgotPassword";
 
 import Profile from "./pages/Profile";
@@ -34,6 +35,7 @@ import StylistNotificationsPage from "./pages/stylist/StylistNotificationsPage";
 import StylistLeaveManagementPage from "./pages/stylist/StylistLeaveManagementPage";
 import StylistCreateLeavePage from "./pages/stylist/StylistCreateLeavePage";
 import StylistDashboardPage from "./pages/stylist/StylistDashboardPage";
+import StylistBookingManagementPage from "./pages/stylist/StylistBookingManagementPage";
 
 function App() {
   return (
@@ -43,6 +45,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
           <Route path="/salons" element={<Salons />} />
+          <Route path="/notifications" element={<NotificationsPage />} /> 
           <Route path="/stylists" element={<Stylists />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -68,6 +71,10 @@ function App() {
           <Route
             path="/stylist-dashboard/notifications/*"
             element={<StylistNotificationsPage />}
+          />
+          <Route
+            path="/stylist-dashboard/bookings"
+            element={<StylistBookingManagementPage />}
           />
           <Route
             path="/stylist-dashboard/leaves"

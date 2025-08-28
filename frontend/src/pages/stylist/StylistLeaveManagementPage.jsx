@@ -7,7 +7,7 @@ const StylistLeaveManagementPage = () => {
   return (
     <StylistLayout
       title="Leave Management"
-      subtitle="Xem lịch sử nghỉ phép và thao tác hủy yêu cầu khi cần"
+      subtitle="View your leave history and cancel requests when needed"
       sidebar={<StylistSideBar />}
     >
       <Leaves />

@@ -9,7 +9,7 @@ export default function CreateLeave() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!date) return alert("Vui lòng chọn ngày nghỉ");
+    if (!date) return alert("Please select a leave date");
 
     try {
       setLoading(true);
@@ -24,8 +24,8 @@ export default function CreateLeave() {
       setDate("");
       setReason("");
     } catch (err) {
-      console.error("Không thể gửi yêu cầu nghỉ phép:", err);
-      alert("Không thể tạo yêu cầu nghỉ. Vui lòng thử lại.");
+      console.error("Unable to submit leave request:", err);
+      alert("Unable to create leave request. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ export default function CreateLeave() {
               <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="text-sm">✓</span>
               </div>
-              <span className="font-medium">Gửi yêu cầu nghỉ phép thành công!</span>
+              <span className="font-medium">Leave request submitted successfully!</span>
             </div>
           </div>
         )}
@@ -54,9 +54,9 @@ export default function CreateLeave() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-            Tạo yêu cầu nghỉ phép
+            Create Leave Request
           </h1>
-          <p className="text-gray-500 mt-2">Điền thông tin để gửi yêu cầu nghỉ phép của bạn</p>
+          <p className="text-gray-500 mt-2">Fill in the information to submit your leave request</p>
         </div>
 
         {/* Form Card */}
@@ -72,7 +72,7 @@ export default function CreateLeave() {
                         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-sm font-semibold text-gray-700">Ngày nghỉ phép</span>
+                    <span className="text-sm font-semibold text-gray-700">Leave Date</span>
                     <span className="text-red-500 text-sm">*</span>
                   </div>
                   <input
@@ -94,15 +94,15 @@ export default function CreateLeave() {
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <span className="text-sm font-semibold text-gray-700">Lý do nghỉ phép</span>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Tùy chọn</span>
+                    <span className="text-sm font-semibold text-gray-700">Reason for Leave</span>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">Optional</span>
                   </div>
                   <textarea
                     className="w-full px-4 py-3 bg-gray-50/50 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:bg-white focus:outline-none transition-all duration-200 text-gray-800 resize-none"
                     rows={4}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Ví dụ: khám bệnh, việc cá nhân, du lịch..."
+                    placeholder="E.g., medical appointment, personal matters, travel..."
                   />
                 </label>
               </div>
@@ -119,14 +119,14 @@ export default function CreateLeave() {
                     {loading ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Đang gửi yêu cầu...</span>
+                        <span>Submitting request...</span>
                       </>
                     ) : (
                       <>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
-                        <span>Gửi yêu cầu nghỉ phép</span>
+                        <span>Submit Leave Request</span>
                       </>
                     )}
                   </div>
@@ -142,7 +142,7 @@ export default function CreateLeave() {
         {/* Footer Note */}
         <div className="text-center mt-8">
           <p className="text-sm text-gray-500">
-            Yêu cầu sẽ được gửi đến quản lý để phê duyệt
+            Your request will be sent to the manager for approval
           </p>
         </div>
       </div>

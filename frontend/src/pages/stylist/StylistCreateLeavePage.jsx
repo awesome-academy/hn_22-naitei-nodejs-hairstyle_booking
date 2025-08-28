@@ -5,8 +5,8 @@ import CreateLeaves from "../../components/stylistDashboard/CreateLeaves";
 const StylistCreateLeavePage = () => {
   return (
     <StylistLayout
-      title="Tạo yêu cầu nghỉ phép"
-      subtitle="Gửi yêu cầu nghỉ cho quản lý phê duyệt"
+      title="Create Leave Request"
+      subtitle="Submit your leave request for manager approval"
     >
       <CreateLeaves />
     </StylistLayout>

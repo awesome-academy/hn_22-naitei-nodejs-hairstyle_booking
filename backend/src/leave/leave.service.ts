@@ -19,6 +19,8 @@ import { DayOffStatus } from "src/common/enums/day-off-status.enum";
 import { startOfDay, endOfDay } from "date-fns";
 
 import { BookingStatus } from "src/common/enums/booking-status.enum";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationGateway } from "../notification/notification.gateway";
 
 type DayOffWithStylist = DayOff & {
   stylist?: {
@@ -30,7 +32,11 @@ type DayOffWithStylist = DayOff & {
 
 @Injectable()
 export class LeaveService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
+  ) {}
 
   private mapToDayOffResponseDto(dayOff: DayOffWithStylist): DayOffResponseDto {
     if (!dayOff.stylist?.user?.fullName) {
@@ -201,6 +207,7 @@ export class LeaveService {
       where: { id: dayOffId },
       include: { stylist: { include: { user: true } } },
     });
+
     if (!dayOff) {
       throw new NotFoundException(ERROR_MESSAGES.DAY_OFF.NOT_FOUND);
     }
@@ -216,53 +223,75 @@ export class LeaveService {
         where: { userId: managerUserId },
         select: { salonId: true },
       });
-      if (!manager) {
-        throw new ForbiddenException(
-          ERROR_MESSAGES.DAY_OFF.NOT_MANAGER_FOR_STYLIST,
-        );
-      }
-      if (dayOff.stylist.salonId !== manager.salonId) {
+      if (!manager || dayOff.stylist.salonId !== manager.salonId) {
         throw new ForbiddenException(
           ERROR_MESSAGES.DAY_OFF.NOT_MANAGER_FOR_STYLIST,
         );
       }
     }
 
-    const updatedDayOff = await this.prisma.dayOff.update({
-      where: { id: dayOffId },
-      data: { status: dto.status },
-      include: { stylist: { include: { user: true } } },
+    const updatedDayOff = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.dayOff.update({
+        where: { id: dayOffId },
+        data: { status: dto.status },
+        include: { stylist: { include: { user: true } } },
+      });
+
+      if (dto.status === DayOffStatus.APPROVED) {
+        const dayStart = startOfDay(dayOff.date);
+        const dayEnd = endOfDay(dayOff.date);
+
+        await tx.workSchedule.updateMany({
+          where: {
+            stylistId: dayOff.stylistId,
+            workingDate: { gte: dayStart, lte: dayEnd },
+          },
+          data: { isDayOff: true },
+        });
+
+        const cancelledBookings = await tx.booking.findMany({
+          where: {
+            stylistId: dayOff.stylistId,
+            workSchedule: { workingDate: { gte: dayStart, lte: dayEnd } },
+            status: BookingStatus.PENDING,
+          },
+        });
+
+        await tx.booking.updateMany({
+          where: { id: { in: cancelledBookings.map((b) => b.id) } },
+          data: { status: BookingStatus.CANCELLED_DAYOFF },
+        });
+
+        for (const booking of cancelledBookings) {
+          const customer = await this.prisma.customer.findUnique({
+            where: { id: booking.customerId },
+            select: { userId: true },
+          });
+
+          if (!customer) {
+            throw new NotFoundException(ERROR_MESSAGES.CUSTOMER.NOT_FOUND);
+          }
+
+          const notification =
+            await this.notificationService.createNotification(
+              customer.userId,
+              "Booking Cancelled",
+              `Your booking on ${dayOff.date.toLocaleDateString()} was cancelled due to stylist day off.`,
+            );
+
+          const unreadCount = await this.notificationService.getUnreadCount(
+            customer.userId,
+          );
+
+          this.notificationGateway.sendToUser(customer.userId, {
+            ...notification,
+            unreadCount,
+          });
+        }
+      }
+
+      return updated;
     });
-
-    if (dto.status === DayOffStatus.APPROVED) {
-      const dayStart = startOfDay(dayOff.date);
-      const dayEnd = endOfDay(dayOff.date);
-
-      await this.prisma.workSchedule.updateMany({
-        where: {
-          stylistId: dayOff.stylistId,
-          workingDate: {
-            gte: dayStart,
-            lte: dayEnd,
-          },
-        },
-        data: { isDayOff: true },
-      });
-
-      await this.prisma.booking.updateMany({
-        where: {
-          stylistId: dayOff.stylistId,
-          workSchedule: {
-            workingDate: {
-              gte: dayStart,
-              lte: dayEnd,
-            },
-          },
-          status: BookingStatus.PENDING,
-        },
-        data: { status: BookingStatus.CANCELLED_DAYOFF },
-      });
-    }
 
     return this.mapToDayOffResponseDto(updatedDayOff);
   }
