@@ -9,8 +9,8 @@ import { Roles } from "src/common/decorators/roles.decorator";
 import { RoleName } from "src/common/enums/role-name.enum";
 import { NotificationResponseDto } from "./dtos/notification-response.dto";
 
-@UseGuards(JwtAuthGuard)
 @Controller("notifications")
+@UseGuards(JwtAuthGuard)
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
@@ -40,5 +40,14 @@ export class NotificationController {
       user.id,
       user.role,
     );
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(RoleName.CUSTOMER, RoleName.STYLIST)
+  @Get()
+  async getAllNotifications(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<NotificationResponseDto[]> {
+    return this.notificationService.getAllByUser(user.id, user.role);
   }
 }

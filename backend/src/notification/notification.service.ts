@@ -7,12 +7,16 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ERROR_MESSAGES } from "src/common/constants/error.constants";
 import { RoleName } from "src/common/enums/role-name.enum";
 import { NotificationResponseDto } from "./dtos/notification-response.dto";
+import { NotificationGateway } from "./notification.gateway";
 
 import { Notification } from "@prisma/client";
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationGateway: NotificationGateway,
+  ) {}
 
   private mapToNotificationResponseDto(
     notification: Notification,
@@ -35,7 +39,6 @@ export class NotificationService {
     const notification = await this.prisma.notification.findUnique({
       where: { id: notificationId },
     });
-
     if (!notification) {
       throw new NotFoundException(ERROR_MESSAGES.NOTIFICATION.NOT_FOUND);
     }
@@ -43,7 +46,6 @@ export class NotificationService {
     if (userRole !== RoleName.ADMIN && notification.userId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.NOTIFICATION.NOT_OWNER);
     }
-
     return this.mapToNotificationResponseDto(notification);
   }
 
@@ -74,5 +76,33 @@ export class NotificationService {
     });
 
     return this.mapToNotificationResponseDto(updatedNotification);
+  }
+
+  async createNotification(
+    userId: string,
+    title: string,
+    content: string,
+  ): Promise<Notification> {
+    const notification = await this.prisma.notification.create({
+      data: { userId, title, content },
+    });
+    return notification;
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    return this.prisma.notification.count({
+      where: { userId, isRead: false },
+    });
+  }
+
+  async getAllByUser(
+    userId: string,
+    userRole: string,
+  ): Promise<NotificationResponseDto[]> {
+    const notifications = await this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+    return notifications.map(this.mapToNotificationResponseDto);
   }
 }

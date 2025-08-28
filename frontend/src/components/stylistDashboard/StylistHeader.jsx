@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useNotificationSocket } from "../../hooks/useNotificationSocket"; // thêm: import hook notification
 
 const StylistHeader = () => {
   const { logout } = useAuth();
@@ -9,6 +10,7 @@ const StylistHeader = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { unreadCount } = useNotificationSocket();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -45,16 +47,22 @@ const StylistHeader = () => {
 
           <div className="flex items-center justify-center flex-1">
             <div className="text-center bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-              <div className="text-xs text-gray-500 font-medium">Current Time</div>
-              <div className="text-sm font-semibold text-gray-700">{getCurrentTime()}</div>
+              <div className="text-xs text-gray-500 font-medium">
+                Current Time
+              </div>
+              <div className="text-sm font-semibold text-gray-700">
+                {getCurrentTime()}
+              </div>
             </div>
           </div>
 
           <div className="flex items-center justify-end space-x-4 flex-1">
             <button
-                  onClick={() => (window.location.href = "/stylist-dashboard/notifications")}
-                  className="relative bg-white p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200 border border-transparent"
-                >
+              onClick={() =>
+                (window.location.href = "/stylist-dashboard/notifications")
+              }
+              className="relative bg-white p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200 border border-transparent"
+            >
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -68,7 +76,11 @@ const StylistHeader = () => {
                   d="M15 17h5l-3-3V9a6 6 0 10-12 0v5l-3 3h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
-              <span className="absolute -top-1 -right-1 block h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
+              {unreadCount > 0 && ( // sửa: hiển thị số notification chưa đọc
+                <span className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 bg-red-500 text-white text-xs font-semibold rounded-full border-2 border-white">
+                  {unreadCount}
+                </span>
+              )}
             </button>
 
             <div className="relative" ref={dropdownRef}>

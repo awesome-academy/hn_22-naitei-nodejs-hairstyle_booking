@@ -14,6 +14,5 @@ export class UpdateUserDto {
   gender?: string;
 
   @IsOptional()
-  @IsUrl({}, { message: "Invalid avatar URL format." })
   avatar?: string;
 }

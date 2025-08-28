@@ -64,7 +64,7 @@ const EditProfileModal = ({ isOpen, onClose, profile, onSave }) => {
   };
 
   const validatePhone = (phone) => {
-    if (!phone) return true; 
+    if (!phone) return true;
 
     const internationalPhoneRegex = /^\+[1-9]\d{1,14}$/;
 
@@ -106,13 +106,7 @@ const EditProfileModal = ({ isOpen, onClose, profile, onSave }) => {
   };
 
   const processAvatarForBackend = (avatar) => {
-    if (!avatar) return "";
-
-    if (avatar.startsWith("data:image/")) {
-      return `https://api.example.com/uploads/avatar_${Date.now()}.jpg`;
-    }
-
-    return avatar;
+    return avatar || "";
   };
 
   const handleSubmit = async (e) => {
