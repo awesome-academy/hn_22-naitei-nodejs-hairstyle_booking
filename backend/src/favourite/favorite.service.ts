@@ -31,9 +31,15 @@ export class FavoriteService {
     return stylist.id;
   }
 
-  async addFavoriteStylist(customerUserId: string, stylistId: string): Promise<StylistFavoriteResponseDto> {
+  async addFavoriteStylist(customerUserId: string, customerId: string): Promise<StylistFavoriteResponseDto> {
     const cId = await this.getValidCustomerId(customerUserId);
-    const sId = await this.getValidStylistId(stylistId);
+    const stylist = await this.prisma.stylist.findUnique({
+      where: { userId: customerId },
+    });
+    if (!stylist) {
+      throw new NotFoundException(ERROR_MESSAGES.FAVORITE.STYLIST_NOT_FOUND);
+    }
+    const sId = await this.getValidStylistId(stylist.id);
 
     const existingFavorite = await this.prisma.stylistFavorite.findFirst({
       where: {
@@ -59,9 +65,15 @@ export class FavoriteService {
     };
   }
 
-  async removeFavoriteStylist(customerUserId: string, stylistId: string): Promise<{ message: string }> {
+  async removeFavoriteStylist(customerUserId: string, customerId: string): Promise<{ message: string }> {
     const cId = await this.getValidCustomerId(customerUserId);
-    const sId = await this.getValidStylistId(stylistId);
+    const stylist = await this.prisma.stylist.findUnique({
+      where: { userId: customerId },
+    });
+    if (!stylist) {
+      throw new NotFoundException(ERROR_MESSAGES.FAVORITE.STYLIST_NOT_FOUND);
+    }
+    const sId = await this.getValidStylistId(stylist.id);
 
     const deleteResult = await this.prisma.stylistFavorite.deleteMany({
       where: {

@@ -40,7 +40,12 @@ export const useStylists = () => {
 
       const { data, pagination: paginationData } = response.data;
 
-      setStylists(data || []);
+      const sortedStylists = [...(data || [])].sort((a, b) => {
+        if (a.favourite === b.favourite) return 0;
+        return a.favourite ? -1 : 1;
+      });
+
+      setStylists(sortedStylists);
       setPagination(
         paginationData || {
           currentPage: 1,
@@ -63,6 +68,30 @@ export const useStylists = () => {
         totalItems: 0,
         itemsPerPage: 10,
       });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const toggleFavourite = useCallback(async (stylistId, isFavourite) => {
+    try {
+      setLoading(true);
+      if (isFavourite) {
+        await stylistApi.removeFromFavorite(stylistId);
+      } else {
+        await stylistApi.addToFavorite(stylistId);
+      }
+      setStylists((prev) =>
+        prev.map((stylist) =>
+          stylist.id === stylistId
+            ? { ...stylist, favourite: !isFavourite }
+            : stylist
+        )
+      );
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "can not up date your favourite stylist"
+      );
     } finally {
       setLoading(false);
     }
@@ -110,6 +139,7 @@ export const useStylists = () => {
     error,
     pagination,
     fetchStylists,
+    toggleFavourite,
     createStylist,
     updateStylist,
     deleteStylist,

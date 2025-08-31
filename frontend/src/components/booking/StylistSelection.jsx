@@ -13,6 +13,11 @@ const StylistSelection = ({
     return <LoadingSpinner />;
   }
 
+  const sortedStylists = [...stylists].sort((a, b) => {
+    if (a.favourite === b.favourite) return 0;
+    return a.favourite ? -1 : 1;
+  });
+
   if (stylists.length === 0) {
     return (
       <div className="text-center py-8">
@@ -49,7 +54,7 @@ const StylistSelection = ({
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {stylists.map((stylist) => (
+        {sortedStylists.map((stylist) => (
           <div
             key={stylist.id}
             onClick={() => onStylistSelect(stylist.id)}
@@ -87,6 +92,28 @@ const StylistSelection = ({
                     </svg>
                   </div>
                 )}
+                <div
+                  className="ml-auto"
+                  aria-label={stylist.favourite ? "Unfavourite" : "Favourite"}
+                >
+                  <svg
+                    className={`w-6 h-6 transition-colors duration-200 ${
+                      stylist.favourite
+                        ? "text-pink-500 fill-pink-500"
+                        : "text-gray-300"
+                    }`}
+                    fill={stylist.favourite ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z"
+                    />
+                  </svg>
+                </div>
               </div>
 
               <div className="flex-1 min-w-0">
